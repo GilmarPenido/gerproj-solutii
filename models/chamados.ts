@@ -1,0 +1,18 @@
+export type ChamadosType = {
+    COD_CHAMADO: number
+    DATA_CHAMADO: string
+    HORA_CHAMADO: string
+    SOLICITACAO_CHAMADO: any
+    CONCLUSAO_CHAMADO: any
+    STATUS_CHAMADO: 'ATRIBUIDO'|'STANDBY'|'AGUARDANDO VALIDACAO'|'FINALIZADO'
+    DTENVIO_CHAMADO: string
+    COD_RECURSO: number
+    CLIENTE_CHAMADO: any
+    CODTRF_CHAMADO: number
+    COD_CLIENTE: number
+    SOLICITACAO2_CHAMADO: any
+    ASSUNTO_CHAMADO: string
+    EMAIL_CHAMADO: string
+    PRIOR_CHAMADO: number
+    COD_CLASSIFICACAO: number
+}
