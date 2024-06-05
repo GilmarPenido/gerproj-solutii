@@ -1,6 +1,6 @@
 'use server'
 
-import SuportCallService from "@/services/suport-call"
+import SuportCallService from "@/services/call/suport-call"
 
 
 export async function Chamados(session: any) {
@@ -23,7 +23,7 @@ export async function Chamados(session: any) {
                     <th>Hora</th>
                 </tr>
                 {
-                    calls.map((c: any) => (
+                    calls?.map((c: any) => (
 
                         <tr>
                             <td>{c.COD_CHAMADO}</td>

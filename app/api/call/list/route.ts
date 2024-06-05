@@ -1,4 +1,4 @@
-import SuportCallService from '@/services/suport-call';
+import SuportCallService from '@/services/call/suport-call';
 import { NextResponse, type NextRequest } from 'next/server'
  
 async function handler(request: NextRequest) {

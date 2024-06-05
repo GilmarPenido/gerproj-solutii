@@ -5,12 +5,9 @@ import CredentialsProvider from "next-auth/providers/credentials"
 const handler = NextAuth({
     callbacks: {
       session({ session, token, user }) {
-        
-
         session.user.recurso = session.user.email['COD_RECURSO']
         session.user.id = session.user.email['COD_USUARIO']
-        session.user.email = undefined
-
+        session.user.email = ""
         return session 
       },
     },
@@ -18,7 +15,7 @@ const handler = NextAuth({
         CredentialsProvider({
           name: 'Credentials',
           credentials: {
-            username: { label: "Username", type: "text", placeholder: "Solutii.s" },
+            username: { label: "Username", type: "text", placeholder: "solutii.s" },
             password: { label: "Password", type: "password" }
           },
           async authorize(credentials, req) {

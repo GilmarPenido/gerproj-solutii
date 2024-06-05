@@ -39,7 +39,3 @@ export default async function RecursoService({ login, password } :{ login: strin
         
    
    }
-
-
-
-export { UserService }
