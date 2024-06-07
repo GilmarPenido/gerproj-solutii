@@ -47,7 +47,3 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
 
 
 }
-
-
-
-export { SuportCallService }

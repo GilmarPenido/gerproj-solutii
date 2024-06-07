@@ -1,7 +1,7 @@
 import { ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
 
-export default async function StartCallService(codChamado: string): Promise<boolean> {
+export default async function StandbyCallService(codChamado: string): Promise<boolean> {
 
 
     return new Promise(async (resolve, reject) => {
