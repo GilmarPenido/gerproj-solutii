@@ -4,7 +4,9 @@ var options = {
     host: '127.0.0.1',
     database: 'C:\\firebird\\GERPROJ_SOLUTII.GDB',
     user:  'SYSDBA',
-    password: 'masterkey'
+    password: 'masterkey',
+    pageSize: 4096,
+    charset: 'UTF8'
 };
 
 export  { Firebird, options }  

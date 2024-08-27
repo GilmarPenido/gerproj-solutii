@@ -1,9 +1,9 @@
-import { ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
+import { ChamadoLimitType, ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
 
 export default (function OsService() {
 
-    function list(chamado: string): Promise<ChamadosType[]> {
+    function list(chamado: string,  recurso: string, data: string): Promise<ChamadosType[]> {
         return new Promise((resolve, reject) => {
 
             Firebird.attach(options, function (err: any, db: any) {
@@ -14,17 +14,66 @@ export default (function OsService() {
 
                 // db = DATABASE
                 db.query(`
-                    SELECT * 
-                    FROM OS 
+                    SELECT
+                    OBS, 
+                    COD_OS,
+                    DTINI_OS,
+                    HRINI_OS,
+                    HRFIM_OS
+                        FROM OS 
                     where 
-                        CHAMADO_OS = ?`,
-                    [chamado,], async function (err: any, result: any) {
+                        ${data ? 'DTINI_OS' : 'CHAMADO_OS'} = ? 
+                            AND
+                        CODREC_OS = ? `,
+                    [data ? data : chamado, recurso], async function (err: any, result: any) {
+
+                        db.detach();
+                        if (err) {
+                            console.log(err)
+                            return reject(err)
+                        }
+
+                        result = result.map( (r: any) => { 
+                            r.OBS = r.OBS.toString('utf8')
+                            return r
+                        })
+
+                        return resolve(result)
+                        // IMPORTANT: close the connection
+
+                    });
+
+            });
+        })
+    }
+
+    function details(chamado: string): Promise<ChamadoLimitType[]> {
+        return new Promise((resolve, reject) => {
+
+            Firebird.attach(options, function (err: any, db: any) {
+
+                if (err) {
+                    return reject(err)
+                }
+
+                // db = DATABASE
+                db.query(`
+                    SELECT C.cod_chamado, O.cod_os, T.cod_tarefa, T.limmes_tarefa 
+                        FROM
+                    CHAMADO C
+                        JOIN
+                    OS O on O.chamado_os = C.cod_chamado and      C.cod_chamado = ?
+                        JOIN
+                    TAREFA T on T.cod_tarefa = O.codtrf_os`,
+                    [chamado], async function (err: any, result: any) {
 
                         db.detach();
 
                         if (err) {
+                            console.log(err)
                             return reject(err)
                         }
+
                         return resolve(result)
                         // IMPORTANT: close the connection
 

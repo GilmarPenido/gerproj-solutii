@@ -1,7 +1,12 @@
 import { ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
 
-export default async function StandbyCallService(codChamado: string): Promise<boolean> {
+export default async function UpdateCallService(
+    codChamado: string,
+    data: string,
+    horaIni: string,
+    horaFim: string,
+    state: string): Promise<boolean> {
 
 
     return new Promise(async (resolve, reject) => {
@@ -47,7 +52,7 @@ export default async function StandbyCallService(codChamado: string): Promise<bo
 
                 transaction.query(`
                         UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
-                    [STATUS_CHAMADO["EM ATENDIMENTO"], codChamado, STATUS_CHAMADO.FINALIZADO], async function (err: any, result: any) {
+                    [state, codChamado, state], async function (err: any, result: any) {
                         if (err) {
                             db.detach()
                             transaction.rollback();
@@ -80,6 +85,33 @@ export default async function StandbyCallService(codChamado: string): Promise<bo
                         
                     });
             })
+
+            await new Promise((resolve, reject) => {
+                transaction.query(`INSERT INTO OS 
+                    (COD_HISTCHAMADO, COD_CHAMADO, DATA_HISTCHAMADO, HORA_HISTCHAMADO, DESC_HISTCHAMADO) VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        newID,
+                        codChamado,
+                        new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
+                        new Date().toLocaleString('pt-br', { hour: '2-digit', minute: '2-digit' }).replaceAll(':', ''),
+                        STATUS_CHAMADO["EM ATENDIMENTO"]
+                    ], async function (err: any, result: any) {
+
+                        if (err) {
+                            transaction.rollback();
+                            db.detach()
+                            return reject(err)
+                        }
+
+                        return resolve(true)
+
+                        
+                    });
+            })
+
+            /**
+             * COD_OS, CODTRF_OS, DTINI_OS, HRINI_OS, HRFIM_OS, STATUS (1 - LEVANTAMENTO, 2 - DESENVOLVIMENTO, 3 - TESTE, 4 - CONCLUIDO), ?, PRODUTIVO_OS ('SIM'), CODREC_OS, PRODUTIVO2_OS ('SIM'), RESPCLI_OS, REMDES_OS ('NAO'), ABONO_OS ('NAO'), DESLOC_OS (0000), OBS (BLOB), DTINC_OS (DATA DE INCLUSAO), FATURADO_OS, PERC_OS (100), COMP_OS (MES VIGENTE), VALID_OS, VRHR_OS, NUM_OS, CHAMADO_OS
+             */
 
             transaction.commit((err: Error) => {
                 if (err) {

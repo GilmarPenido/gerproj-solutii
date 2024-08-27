@@ -3,11 +3,23 @@ import OsService from '@/services/os/list';
 import { NextResponse, type NextRequest } from 'next/server'
  
 async function handler(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const chamado = searchParams.get('chamado')
-  const response = await OsService.list(chamado as string)
+  
+  const  {
+    chamado,
+    data,
+    recurso
+  } = await request.json()
+
+
+  console.log(chamado,
+    data,
+    recurso)
+
+
+  
+  const response = await OsService.list(chamado, recurso, data)
 
   return NextResponse.json(response)
 }
 
-export { handler as GET, handler as POST };
+export { handler as POST };

@@ -17,6 +17,13 @@ export type ChamadosType = {
     COD_CLASSIFICACAO: number
 }
 
+export type ChamadoLimitType = {
+    COD_CHAMADO: number
+    COD_OS: number
+    COD_TAREFA: number
+    LIMMES_TAREFA: number
+}
+
 export type StatusChamadoType = 'ATRIBUIDO'|'STANDBY'|'AGUARDANDO VALIDACAO'|'FINALIZADO'|'EM ATENDIMENTO'
 
 

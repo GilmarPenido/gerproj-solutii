@@ -25,7 +25,7 @@ export async function Chamados(session: any) {
                 {
                     calls?.map((c: any) => (
 
-                        <tr>
+                        <tr key={c.HORA_CHAMADO+c.CD_CHAMADO}>
                             <td>{c.COD_CHAMADO}</td>
                             <td>{c.ASSUNTO_CHAMADO}</td>
                             <td>{c.COD_CLASSIFICACAO}</td>

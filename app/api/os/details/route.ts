@@ -1,4 +1,4 @@
-import StandbyCallService from '@/services/call/standby'
+import StartCallService from '@/services/call/start'
 import { NextResponse, type NextRequest } from 'next/server'
  
 async function handler(request: NextRequest) {
@@ -7,7 +7,7 @@ async function handler(request: NextRequest) {
   
 
   try {
-    const response = await StandbyCallService(codChamado??'', '', '', '', '')
+    const response = await StartCallService(codChamado??'')
 
     return NextResponse.json(response)
   } catch(error) {

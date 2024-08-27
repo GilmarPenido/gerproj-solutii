@@ -14,7 +14,7 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
 
             // db = DATABASE
             db.query(`
-                SELECT    
+                SELECT
                     COD_CHAMADO,
                     ASSUNTO_CHAMADO,
                     COD_CLASSIFICACAO,
