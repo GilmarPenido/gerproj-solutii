@@ -14,6 +14,7 @@
     "@hookform/resolvers": "^3.4.2",
     "@mui/material": "^5.15.19",
     "@mui/x-data-grid": "^7.6.2",
+    "iconv-lite": "^0.6.3",
     "next": "14.2.3",
     "next-auth": "^4.24.7",
     "node-firebird": "^1.1.8",

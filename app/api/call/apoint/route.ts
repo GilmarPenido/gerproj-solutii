@@ -4,13 +4,10 @@ import { NextResponse, type NextRequest } from 'next/server'
 async function handler(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const codChamado = searchParams.get('codChamado')
-  const description = searchParams.get('description')
-  const date = searchParams.get('date')
-  const startTime = searchParams.get('startTime')
-  const endTime = searchParams.get('endTime') 
+  
 
   try {
-    const response = await StandbyCallService(codChamado??'', description??'', date??'', startTime??'', endTime??'', 'STANDBY')
+    const response = await StandbyCallService(codChamado??'', '', '', '', '')
 
     return NextResponse.json(response)
   } catch(error) {

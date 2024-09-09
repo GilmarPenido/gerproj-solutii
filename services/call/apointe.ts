@@ -1,12 +1,11 @@
 import { ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
 
-export default async function UpdateCallService(
-    chamado: any,
-    description: string,
-    date: string,
-    startTime: string,
-    endTime: string,
+export default async function ApointeService(
+    codChamado: string,
+    data: string,
+    horaIni: string,
+    horaFim: string,
     state: string): Promise<boolean> {
 
 
@@ -25,7 +24,7 @@ export default async function UpdateCallService(
                 })
             })
 
-            let newID: number = await new Promise((resolve, reject) => {
+            const newID: number = await new Promise((resolve, reject) => {
 
                 db.query(`SELECT MAX(COD_HISTCHAMADO) + 1 as ID FROM HISTCHAMADO`,
                     [], async function (err: any, res: any) {
@@ -53,7 +52,7 @@ export default async function UpdateCallService(
 
                 transaction.query(`
                         UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
-                    [state, chamado.cod_chamado, state], async function (err: any, result: any) {
+                    [state, codChamado, state], async function (err: any, result: any) {
                         if (err) {
                             db.detach()
                             transaction.rollback();
@@ -69,7 +68,7 @@ export default async function UpdateCallService(
                 transaction.query(`INSERT INTO HISTCHAMADO (COD_HISTCHAMADO, COD_CHAMADO, DATA_HISTCHAMADO, HORA_HISTCHAMADO, DESC_HISTCHAMADO) VALUES (?, ?, ?, ?, ?)`,
                     [
                         newID,
-                        chamado.cod_chamado,
+                        codChamado,
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
                         new Date().toLocaleString('pt-br', { hour: '2-digit', minute: '2-digit' }).replaceAll(':', ''),
                         STATUS_CHAMADO["EM ATENDIMENTO"]
@@ -87,54 +86,15 @@ export default async function UpdateCallService(
                     });
             })
 
-            newID = await new Promise((resolve, reject) => {
-
-                db.query(`SELECT MAX(COD_OS) + 1 as ID FROM OS`,
-                    [], async function (err: any, res: any) {
-                        if (err) {
-                            db.detach()
-                            return reject(err);
-                        }
-                        return resolve(res[0]['ID'])
-                    })
-            })
-
-            const os = {} as any
-
             await new Promise((resolve, reject) => {
                 transaction.query(`INSERT INTO OS 
-                    (
-                        COD_OS, CODTRF_OD, HRINI_OS, HRFIM_OS, OBS_OS, STATUS_OS, PRODUTIVO_OS, 
-                        CODREC_OS, PRODUTIVO2_OS, RESCLI_OS, REMDES_OS, ABONO_OS, DESLOC_OS,
-                        OBS, DTINC_OS, FATURADO_OS, PERC_OS, COD_FATURAMENTO, COMP_OS,
-                        VALID_OS, VRHR_OS, NUM_OS, CHAMADO_OS
-                    ) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    )`,
+                    (COD_HISTCHAMADO, COD_CHAMADO, DATA_HISTCHAMADO, HORA_HISTCHAMADO, DESC_HISTCHAMADO) VALUES (?, ?, ?, ?, ?)`,
                     [
                         newID,
-                        chamado.cod_chamado,
-                        startTime.replace(":", ""),
-                        endTime.replace(":", ""),
-                        os.OBS_OS,
-                        STATUS_CHAMADO["EM ATENDIMENTO"],
-                        os.PRODUTIVO_OS,
-                        os.CODREC_OS,
-                        os.PRODUTIVO2_OS,
-                        os.RESPCLI_OS,
-                        os.REMDES_OS,
-                        os.ABONO_OS,
-                        os.DESLOC_OS,
-                        description,
+                        codChamado,
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
-                        os.FATURAMENTO_OS,
-                        os.PERC_OS,
-                        os.COD_FATURAMENTO,
-                        os.COMP_OS,
-                        os.VALID_OS,
-                        os.VRHR_OS,
-                        os.NUM_OS,
-                        chamado.cod_chamado
+                        new Date().toLocaleString('pt-br', { hour: '2-digit', minute: '2-digit' }).replaceAll(':', ''),
+                        STATUS_CHAMADO["EM ATENDIMENTO"]
                     ], async function (err: any, result: any) {
 
                         if (err) {

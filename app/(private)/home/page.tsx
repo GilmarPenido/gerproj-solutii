@@ -29,6 +29,7 @@ export default function Home() {
         initial: "",
         final: "",
     });
+    const [descriptionText,setDescriptionText] = useState('')
 
     const [date, setDate] = useState(new Date().toISOString().substr(0, 10));
 
@@ -320,15 +321,39 @@ export default function Home() {
         setOpenModal(false);
     }
 
-    async function standbyCall(chamado: ChamadosType | null, descricao: string) {
+    async function standbyCall(chamado: ChamadosType | null) {
+
+
+        if( hours.initial > hours.final) {
+
+            alert("Hora inicial não pode ser maior que a hora final!")
+            return;
+
+        }
+
+        if(description.trim() === "") {
+
+            console.log(description)
+
+            alert("Descrição do chamado é obrigatória!")
+            return;
+        }
+
+
+        console.log(chamado, description, date, hours)
+
+
         if (!chamado) return;
 
         let result = await fetch("/api/call/stadby", {
             method: "POST",
             body: JSON.stringify({
-                codChamado: chamado.COD_CHAMADO,
-                descricao,
-            }),
+                codChamado: chamado,
+                description,
+                date,
+                startTime: hours.initial,
+                endTime: hours.final,
+                state: 'STANDBY'})
         })
             .then((res) => res.json())
             .then((res) => res);
@@ -420,12 +445,14 @@ export default function Home() {
                     isOpen={modalStandby}
                     setOpenModal={setModalStandby}
                     title="StandBy"
-                    action={() => standbyCall(selectedCall, textArea)}
+                    action={() => standbyCall(selectedCall)}
                 >
                     <label>Descrição</label>
                     <textarea
                         rows={5}
                         className="w-full border-zinc-300 border-2 outline-none rounded-lg resize-none p-2"
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
                     />
 
                     <p>Horas</p>
