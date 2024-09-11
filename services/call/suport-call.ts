@@ -21,6 +21,8 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
                     DTENVIO_CHAMADO,
                     HORA_CHAMADO,
                     STATUS_CHAMADO,
+                    CODTRF_CHAMADO,
+                    COD_RECURSO,
                     CAST(SOLICITACAO2_CHAMADO AS VARCHAR(32000)) AS  SOLICITACAO2_CHAMADO,
                     CAST(SOLICITACAO_CHAMADO AS VARCHAR(32000))  AS SOLICITACAO_CHAMADO
                 FROM 

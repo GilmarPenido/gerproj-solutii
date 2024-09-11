@@ -1,7 +1,13 @@
-import Image from "next/image";
-
+'use client'
+import { useRouter } from "next/navigation";
 export default function Home() {
+
+
+  const route = useRouter()
+
+  route.push("api/auth/signin")
+
   return (
-    <h1>First Page</h1>
+    <></>
   );
 }

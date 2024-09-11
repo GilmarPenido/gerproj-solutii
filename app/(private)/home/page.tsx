@@ -13,6 +13,7 @@ import Modal from "@/components/modal";
 import Loading from "@/components/loading";
 
 import { LuPointer } from "react-icons/lu";
+import   iconv from 'iconv-lite';
 
 export default function Home() {
     const { data: session } = useSession();
@@ -22,6 +23,7 @@ export default function Home() {
     const [description, setDescription] = useState("");
     const [selectedCall, setSelectedCall] = useState<ChamadosType | null>(null);
     const [modalStandby, setModalStandby] = useState(false);
+    const [modalTarefa, setModalTarefa] = useState(false);
     const [textArea, setTextArea] = useState("");
     const [loadingOs, setLoadingOs] = useState(false);
     const [listOs, setListOs] = useState([]);
@@ -29,6 +31,10 @@ export default function Home() {
         initial: "",
         final: "",
     });
+
+    const [selectedTask, setSelectedTask] = useState<any>(null);
+
+    const [tasks, setTasks] = useState([])
     const [descriptionText,setDescriptionText] = useState('')
 
     const [date, setDate] = useState(new Date().toISOString().substr(0, 10));
@@ -310,6 +316,22 @@ export default function Home() {
     }
 
     async function startCall(chamado: ChamadosType) {
+
+        if(chamado.CODTRF_CHAMADO === null) {
+
+
+            let selectedTasks: any = await fetch("/api/call/task", {
+                method: "POST",
+                body: JSON.stringify( { chamado } )
+            }).then(response => response.json())
+            
+            setSelectedTask(null);
+            setTasks(selectedTasks);
+            setModalTarefa(true);
+            return;
+        }
+
+
         let result = await fetch(
             "/api/call/start?codChamado=" + chamado.COD_CHAMADO
         )
@@ -322,6 +344,11 @@ export default function Home() {
     }
 
     async function standbyCall(chamado: ChamadosType | null) {
+
+        if(hours.initial && hours.final && date) {
+            alert("Selecione uma data e hora inicial/final");
+            return;
+        }
 
 
         if( hours.initial > hours.final) {
@@ -339,21 +366,32 @@ export default function Home() {
             return;
         }
 
+     
+        if (!chamado) {
+            alert("Selecione um chamado!");
+            return;
+        }
 
-        console.log(chamado, description, date, hours)
-
-
-        if (!chamado) return;
-
-        let result = await fetch("/api/call/stadby", {
+        let task = await fetch("/api/get-task", {
             method: "POST",
             body: JSON.stringify({
-                codChamado: chamado,
+                COD_CHAMADO: selectedCall?.COD_CHAMADO
+            })
+        })
+            .then((res) => res.json())
+            .then((res) => res);
+
+        let result = await fetch("/api/call/standby", {
+            method: "POST",
+            body: JSON.stringify({
+                chamado,
                 description,
                 date,
                 startTime: hours.initial,
                 endTime: hours.final,
-                state: 'STANDBY'})
+                state: 'STANDBY',
+                task
+            })
         })
             .then((res) => res.json())
             .then((res) => res);
@@ -371,6 +409,41 @@ export default function Home() {
 
         setDescription(chamado.SOLICITACAO2_CHAMADO);
         setOpenModal(true);
+    }
+
+    async function updateChamadoTarefa() {
+        setLoadingOs(true);
+
+
+        if(!selectedTask) {
+            alert("Selecione uma tarefa!")
+            return;
+        }
+
+
+        let result = await fetch("/api/insert-task", {
+            method: "POST",
+            body: JSON.stringify({
+                COD_CHAMADO: selectedCall?.COD_CHAMADO,
+                COD_TAREFA: selectedTask 
+            })
+        })
+            .then((res) => res.json())
+            .then((res) => res);
+
+        if (!result) return;
+
+
+        if(selectedCall) {
+            await startCall(selectedCall)
+        }
+
+        setModalTarefa(false);
+
+        getCalls();
+
+        setLoadingOs(false);
+
     }
 
     useEffect(() => {
@@ -440,6 +513,26 @@ export default function Home() {
                 </Modal>
             )}
 
+            {
+                modalTarefa &&
+                <Modal 
+                    isOpen={modalTarefa}
+                    setOpenModal={setModalTarefa}
+                    title="Selecione a Tarefa do chamado!"
+                    action={updateChamadoTarefa}
+                >
+                    <select name="tarefa" id="tarefa" onChange={(event) => setSelectedTask( event.target.value)}>
+                        <option value="">Selecione uma Tarefa</option>
+                        {   
+                            tasks.map((task: any, index) => (
+                                <option key={index} value={task.COD_TAREFA}>{task.NOME_TAREFA}</option>
+                            ))
+                        }
+                    </select>
+
+                </Modal>
+            }
+
             {modalStandby && (
                 <Modal
                     isOpen={modalStandby}
@@ -487,7 +580,7 @@ export default function Home() {
             )}
 
             <header className="flex flex-row w-full justify-around p-4">
-                <p className="text-blue-500">{session?.user.name}</p>
+                <p className="text-blue-500">{iconv.decode(session?.user.name??'', 'ISO-8859-1')}</p>
                 <p
                     className="bg-zync-500 text-blue-500 rounded-lg cursor-pointer"
                     onClick={() => signOut()}
@@ -510,10 +603,10 @@ export default function Home() {
                     className={
                         tab === "os"
                             ? "bg-orange-700 w-[50%] text-center text-white h-8 p-1"
-                            : "bg-zinc-100 w-[50%] text-center text-zinc-700 h-8 p-1"
+                            : "bg-zinc-100 w-[50%] text-center text-zinc-700 h-8 p-1 line-through"
                     }
                 >
-                    OS
+                    OS (em breve)
                 </h2>
             </section>
 
@@ -580,7 +673,7 @@ export default function Home() {
 
                                     {c.STATUS_CHAMADO !== "EM ATENDIMENTO" && (
                                         <VscDebugStart
-                                            onClick={(e) =>  { e.stopPropagation();startCall(c);}}
+                                            onClick={(e) =>  { /* e.stopPropagation(); */startCall(c);}}
                                             title="EM ATENDIMENTO"
                                             style={{ cursor: "pointer" }}
                                             className="text-green-600 hover:text-green-400"
@@ -593,7 +686,7 @@ export default function Home() {
                                         c.STATUS_CHAMADO !== "ATRIBUIDO" && (
                                             <PiPauseDuotone
                                                 title="STANDBY"
-                                                onClick={(e) => { e.stopPropagation();setModalStandby(true)}}
+                                                onClick={(e) => { setModalStandby(true) }}
                                                 style={{ cursor: "pointer" }}
                                                 className="text-yellow-500 hover:text-yellow-300"
                                                 size={18}
@@ -666,7 +759,7 @@ export default function Home() {
                                         <td className="p-2 text-center">
                                             {os?.COD_OS.toLocaleString("pt-br")}
                                         </td>
-                                        <td className="p-2 text-center"></td>
+                                        <td className="p-2 text-center">{os.NOME_CLIENTE}</td>
                                         <td className="p-2">{os.OBS}</td>
                                         <td className="p-2 text-center">
                                             {new Date(os.DTINI_OS).toLocaleString("pt-br", {

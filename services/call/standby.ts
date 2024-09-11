@@ -1,4 +1,4 @@
-import { ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
+import { ChamadosType, STATUS_CHAMADO, STATUS_CHAMADO_COD } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
 
 export default async function UpdateCallService(
@@ -7,7 +7,8 @@ export default async function UpdateCallService(
     date: string,
     startTime: string,
     endTime: string,
-    state: string): Promise<boolean> {
+    state: any,
+    task: any): Promise<boolean> {
 
 
     return new Promise(async (resolve, reject) => {
@@ -36,8 +37,7 @@ export default async function UpdateCallService(
                         return resolve(res[0]['ID'])
                     })
             })
-
-
+   
             const transaction: any = await new Promise((resolve, reject) => {
                 db.transaction(Firebird.ISOLATION_READ_COMMITTED, (err: any, transaction: any) => {
                     if (err) {
@@ -48,12 +48,11 @@ export default async function UpdateCallService(
                 })
             })
 
-
-            await new Promise((resolve, reject) => {
+            let success = await new Promise((resolve, reject) => {
 
                 transaction.query(`
-                        UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
-                    [state, chamado.cod_chamado, state], async function (err: any, result: any) {
+                        UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ?`,
+                    [state, chamado.COD_CHAMADO], async function (err: any, result: any) {
                         if (err) {
                             db.detach()
                             transaction.rollback();
@@ -65,14 +64,15 @@ export default async function UpdateCallService(
 
             })
 
-            await new Promise((resolve, reject) => {
+
+            success = await new Promise((resolve, reject) => {
                 transaction.query(`INSERT INTO HISTCHAMADO (COD_HISTCHAMADO, COD_CHAMADO, DATA_HISTCHAMADO, HORA_HISTCHAMADO, DESC_HISTCHAMADO) VALUES (?, ?, ?, ?, ?)`,
                     [
                         newID,
-                        chamado.cod_chamado,
+                        chamado.COD_CHAMADO,
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
                         new Date().toLocaleString('pt-br', { hour: '2-digit', minute: '2-digit' }).replaceAll(':', ''),
-                        STATUS_CHAMADO["EM ATENDIMENTO"]
+                        state
                     ], async function (err: any, result: any) {
 
                         if (err) {
@@ -87,54 +87,67 @@ export default async function UpdateCallService(
                     });
             })
 
-            newID = await new Promise((resolve, reject) => {
+            let [COD_OS, NUM_OS] = await new Promise<[number, number|string]>((resolve, reject) => {
 
-                db.query(`SELECT MAX(COD_OS) + 1 as ID FROM OS`,
+                db.query(`SELECT MAX(COD_OS) + 1 as COD_OS, MAX(NUM_OS) as NUM_OS FROM OS`,
                     [], async function (err: any, res: any) {
                         if (err) {
                             db.detach()
                             return reject(err);
                         }
-                        return resolve(res[0]['ID'])
+                        return resolve([res[0]['COD_OS'], res[0]['NUM_OS']])
                     })
             })
-
-            const os = {} as any
-
-            await new Promise((resolve, reject) => {
-                transaction.query(`INSERT INTO OS 
-                    (
-                        COD_OS, CODTRF_OD, HRINI_OS, HRFIM_OS, OBS_OS, STATUS_OS, PRODUTIVO_OS, 
-                        CODREC_OS, PRODUTIVO2_OS, RESCLI_OS, REMDES_OS, ABONO_OS, DESLOC_OS,
-                        OBS, DTINC_OS, FATURADO_OS, PERC_OS, COD_FATURAMENTO, COMP_OS,
-                        VALID_OS, VRHR_OS, NUM_OS, CHAMADO_OS
-                    ) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    )`,
+            
+            NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6) 
+       
+            success = await new Promise((resolve, reject) => {
+                transaction.query(
+                `insert into OS (
+                    COD_OS,
+                    CODTRF_OS,
+                    DTINI_OS,
+                    HRINI_OS,
+                    HRFIM_OS,
+                    OBS_OS,
+                    STATUS_OS,
+                    PRODUTIVO_OS,
+                    CODREC_OS,
+                    PRODUTIVO2_OS,
+                    RESPCLI_OS,
+                    OBS,
+                    REMDES_OS,
+                    ABONO_OS,
+                    DTINC_OS,
+                    FATURADO_OS,
+                    PERC_OS,
+                    VALID_OS,
+                    NUM_OS,
+                    CHAMADO_OS,
+                    VRHR_OS
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
-                        newID,
-                        chamado.cod_chamado,
+                        COD_OS,
+                        chamado.CODTRF_CHAMADO??task.COD_TAREFA,
+                        new Date(`${date} 00:00`).toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
                         startTime.replace(":", ""),
                         endTime.replace(":", ""),
-                        os.OBS_OS,
-                        STATUS_CHAMADO["EM ATENDIMENTO"],
-                        os.PRODUTIVO_OS,
-                        os.CODREC_OS,
-                        os.PRODUTIVO2_OS,
-                        os.RESPCLI_OS,
-                        os.REMDES_OS,
-                        os.ABONO_OS,
-                        os.DESLOC_OS,
+                        chamado.ASSUNTO_CHAMADO,
+                        STATUS_CHAMADO_COD['STANDBY'],
+                        'SIM',  //PRODUTIVO_OS
+                        chamado.COD_RECURSO,
+                        'SIM',  //PRODUTIVO2_OS
+                        task.RESPCLI_PROJETO, //RESPCLI_OS
                         description,
+                        'NAO',
+                        'NAO',
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
-                        os.FATURAMENTO_OS,
-                        os.PERC_OS,
-                        os.COD_FATURAMENTO,
-                        os.COMP_OS,
-                        os.VALID_OS,
-                        os.VRHR_OS,
-                        os.NUM_OS,
-                        chamado.cod_chamado
+                        'SIM',  //FATURADO_OS
+                        100, //PERC_OS
+                        'NAO', //VALID_OS
+                        NUM_OS,
+                        chamado.COD_CHAMADO,
+                        0
                     ], async function (err: any, result: any) {
 
                         if (err) {
@@ -149,16 +162,20 @@ export default async function UpdateCallService(
                     });
             })
 
+            console.log(7)
+
             /**
              * COD_OS, CODTRF_OS, DTINI_OS, HRINI_OS, HRFIM_OS, STATUS (1 - LEVANTAMENTO, 2 - DESENVOLVIMENTO, 3 - TESTE, 4 - CONCLUIDO), ?, PRODUTIVO_OS ('SIM'), CODREC_OS, PRODUTIVO2_OS ('SIM'), RESPCLI_OS, REMDES_OS ('NAO'), ABONO_OS ('NAO'), DESLOC_OS (0000), OBS (BLOB), DTINC_OS (DATA DE INCLUSAO), FATURADO_OS, PERC_OS (100), COMP_OS (MES VIGENTE), VALID_OS, VRHR_OS, NUM_OS, CHAMADO_OS
              */
 
-            transaction.commit((err: Error) => {
+            success = await transaction.commit((err: Error) => {
                 if (err) {
+                    console.log(8)
                     transaction.rollback();
                     return reject(err)
                 }
                 else {
+                    console.log(9)
                     db.detach();
                     return resolve(true)
                 }
@@ -167,6 +184,7 @@ export default async function UpdateCallService(
 
 
         } catch (err) {
+            console.log(10, err)
             db.detach();
             return reject(err)
         }

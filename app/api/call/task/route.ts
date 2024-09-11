@@ -1,4 +1,5 @@
 import StandbyCallService from '@/services/call/standby'
+import TaskService from '@/services/call/task';
 import { NextResponse, type NextRequest } from 'next/server'
  
 async function handler(request: NextRequest) {
@@ -6,17 +7,11 @@ async function handler(request: NextRequest) {
 
   const {
     chamado,
-    date,
-    description,
-    endTime,
-    startTime,
-    state,
-    task
   } = await request.json();
 
 
   try {
-    const response = await StandbyCallService(chamado, description, date, startTime, endTime, state, task)
+    const response = await TaskService(chamado)
 
     return NextResponse.json(response)
   } catch(error) {
@@ -30,4 +25,4 @@ async function handler(request: NextRequest) {
   
 }
 
-export { handler as GET, handler as POST };
+export { handler as POST };

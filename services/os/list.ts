@@ -21,7 +21,7 @@ export default (function OsService() {
                     OS.DTINI_OS,
                     OS.HRINI_OS,
                     OS.HRFIM_OS,
-                    CLIENTE.nome_cliente
+                    CLIENTE.NOME_CLIENTE
                         FROM OS
                         LEFT JOIN CHAMADO ON (OS.chamado_os = CHAMADO.cod_chamado)
                         LEFT JOIN TAREFA ON (TAREFA.cod_tarefa = OS.codtrf_os)
