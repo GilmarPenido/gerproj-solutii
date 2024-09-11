@@ -7,7 +7,7 @@ async function handler(request: NextRequest) {
   
 
   try {
-    const response = await StandbyCallService(codChamado??'', '', '', '', '')
+    const response = await StandbyCallService(codChamado??'', '', '', '', '', '', '')
 
     return NextResponse.json(response)
   } catch(error) {

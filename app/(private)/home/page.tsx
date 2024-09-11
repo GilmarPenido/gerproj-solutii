@@ -341,6 +341,7 @@ export default function Home() {
         if (!result) return;
 
         setOpenModal(false);
+        getCalls();
     }
 
     async function standbyCall(chamado: ChamadosType | null) {
@@ -433,14 +434,16 @@ export default function Home() {
 
         if (!result) return;
 
-
         if(selectedCall) {
-            await startCall(selectedCall)
+            let call = {
+                ...selectedCall,
+                CODTRF_CHAMADO: selectedTask
+            }
+            await startCall(call)
         }
 
-        setModalTarefa(false);
 
-        getCalls();
+        setModalTarefa(false);
 
         setLoadingOs(false);
 

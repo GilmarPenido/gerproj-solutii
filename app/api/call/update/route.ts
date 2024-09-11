@@ -18,7 +18,9 @@ async function handler(request: NextRequest) {
       data,
       horaIni,
       horaFim,
-      state)
+      state,
+      '',
+    '')
 
     return NextResponse.json(response)
   } catch(error) {
