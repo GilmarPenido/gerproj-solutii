@@ -2,7 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { ChamadosType } from "@/models/chamados";
+import { ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { VscDebugStart } from "react-icons/vsc";
 import { PiPauseDuotone } from "react-icons/pi";
 import { TbCalendarCheck } from "react-icons/tb";
@@ -14,6 +14,7 @@ import Loading from "@/components/loading";
 
 import { LuPointer } from "react-icons/lu";
 import   iconv from 'iconv-lite';
+import { CiEdit } from "react-icons/ci";
 
 export default function Home() {
     const { data: session } = useSession();
@@ -22,8 +23,11 @@ export default function Home() {
     const [isOpenModal, setOpenModal] = useState(false);
     const [description, setDescription] = useState("");
     const [selectedCall, setSelectedCall] = useState<ChamadosType | null>(null);
+    const [selectedOs, setSelectedOs] = useState<any | null>(null);
+   
     const [modalStandby, setModalStandby] = useState(false);
     const [modalTarefa, setModalTarefa] = useState(false);
+    const [modalEditOS, setModalEditOS] = useState(false);
     const [textArea, setTextArea] = useState("");
     const [loadingOs, setLoadingOs] = useState(false);
     const [listOs, setListOs] = useState([]);
@@ -315,6 +319,36 @@ export default function Home() {
         setCalls(result);
     }
 
+
+    async function changeStatus(chamado: ChamadosType, status: string) {
+
+        if(chamado.CODTRF_CHAMADO === null) {
+
+
+            let selectedTasks: any = await fetch("/api/call/task", {
+                method: "POST",
+                body: JSON.stringify( { chamado } )
+            }).then(response => response.json())
+            
+            setSelectedTask(null);
+            setTasks(selectedTasks);
+            setModalTarefa(true);
+            return;
+        }
+
+
+        let result = await fetch(
+            "/api/call/change-status?codChamado=" + chamado.COD_CHAMADO + "&status=" + status
+        )
+            .then((res) => res.json())
+            .then((res) => res);
+
+        if (!result) return;
+
+        setOpenModal(false);
+        getCalls();
+    }
+
     async function startCall(chamado: ChamadosType) {
 
         if(chamado.CODTRF_CHAMADO === null) {
@@ -346,7 +380,7 @@ export default function Home() {
 
     async function standbyCall(chamado: ChamadosType | null) {
 
-        if(hours.initial && hours.final && date) {
+        if((!hours.initial) || (!hours.final) || (!date)) {
             alert("Selecione uma data e hora inicial/final");
             return;
         }
@@ -501,6 +535,70 @@ export default function Home() {
 
     }
 
+    function handleEdit(os: any) {
+
+
+
+        setSelectedOs(os);
+
+        setHours({
+            initial: os.HRINI_OS.replace(/(\d{2})(\d{2})/, "$1:$2"),
+            final: os.HRFIM_OS.replace(/(\d{2})(\d{2})/, "$1:$2")
+        });
+
+        setDescription(os.OBS)
+        setDate(os.DTINI_OS.substring(0,10));
+
+        setModalEditOS(true);
+    }
+
+    async function updateOs() {
+
+        if((!hours.initial) || (!hours.final) || (!date)) {
+            alert("Selecione uma data e hora inicial/final");
+            return;
+        }
+
+
+        if( hours.initial > hours.final) {
+
+            alert("Hora inicial não pode ser maior que a hora final!")
+            return;
+
+        }
+
+        if(description.trim() === "") {
+
+            alert("Descrição do chamado é obrigatória!")
+            return;
+        }
+
+
+
+
+        let result = await fetch("/api/os/update", {
+            method: "POST",
+            body: JSON.stringify({
+                codOs: selectedOs.COD_OS,
+                description,
+                date,
+                startTime:hours.initial,
+                endTime: hours.final
+            })
+        })
+            .then((res) => res.json())
+            .then((res) => res);
+
+        if (!result) return;
+
+        getCalls();
+
+        setModalEditOS(false);
+
+        return
+
+    }
+
     return (
         <main className="w-full h-full flex flex-col justify-center items-center p-4">
             {isOpenModal && (
@@ -581,6 +679,54 @@ export default function Home() {
                     </div>
                 </Modal>
             )}
+
+            {
+                modalEditOS && <Modal
+                    title="Editar apontamento"
+                    isOpen={modalEditOS}
+                    setOpenModal={setModalEditOS}
+                    action={updateOs} 
+
+                >
+                    <p>Chamado: {selectedOs?.COD_OS}</p>
+                    <label>Descrição</label>
+                    <textarea
+                        rows={5}
+                        className="w-full border-zinc-300 border-2 outline-none rounded-lg resize-none p-2"
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                    />
+
+                    <p>Horas</p>
+
+                    <div className="w-full flex flex-row justify-between gap-8 pt-2">
+                        <input
+                            className="border-zync-300 border-2 outline-none rounded-lg p-2 w-[40%]"
+                            onChange={(event) => updateInitialHour(event.target.value)}
+                            onBlur={event => updateInitialHour(validTime(event.target.value))}
+                            value={hours.initial}
+                            type="time"
+                        />
+                        <input
+                            className="border-zync-300 border-2 outline-none rounded-lg p-2 w-[40%]"
+                            onChange={(event) => updateFinalHour(event.target.value)}
+                            onBlur={event => updateFinalHour(validTime(event.target.value))}
+                            value={hours.final}
+                            type="time"
+                        />
+                    </div>
+
+                    <p className="pt-4">Data</p>
+                    <div className="w-full flex flex-row justify-between gap-8 pt-2">
+                            
+                        <input
+                            className="border-zync-300 border-2 outline-none rounded-lg p-2 w-[40%]"
+                            onChange={(event) => setDate(event.target.value)}
+                            value={date}
+                            type="date" />
+                    </div>
+                </Modal>
+            }
 
             <header className="flex flex-row w-full justify-around p-4">
                 <p className="text-blue-500">{iconv.decode(session?.user.name??'', 'ISO-8859-1')}</p>
@@ -699,6 +845,7 @@ export default function Home() {
                                     {c.STATUS_CHAMADO !== "AGUARDANDO VALIDACAO" &&
                                         c.STATUS_CHAMADO !== "ATRIBUIDO" && (
                                             <ImStop
+                                                onClick={(e) =>  { /* e.stopPropagation(); */changeStatus(c, STATUS_CHAMADO['AGUARDANDO VALIDACAO']);}}
                                                 title="AGUARDANDO VALIDAÇÃO"
                                                 style={{ cursor: "pointer" }}
                                                 className="text-red-700 hover:text-red-500"
@@ -708,6 +855,7 @@ export default function Home() {
 
                                     {c.STATUS_CHAMADO !== "ATRIBUIDO" && (
                                         <TbCalendarCheck
+                                            onClick={(e) =>  { /* e.stopPropagation(); */changeStatus(c, STATUS_CHAMADO['FINALIZADO']);}}
                                             title="FINALIZADO"
                                             style={{ cursor: "pointer" }}
                                             className="text-orange-500 hover:text-orange-300"
@@ -730,7 +878,7 @@ export default function Home() {
             </section>
 
             <section className="w-full sm:text-sm text-xs pt-6 overflow-auto">
-                <input type="date" value={selectedDate} onChange={changeSelectedDate} className="h-8 p-2 w-[160px] outline-none border-2 border-zinc-200 rounded-md" />
+                <input placeholder="Selecione uma data" type="date" value={selectedDate} onChange={changeSelectedDate} className="h-8 p-2 w-[160px] outline-none border-2 border-zinc-200 rounded-md" />
                 <IoCloseCircleOutline onClick={_ => setSelectedDate('')} className="cursor-pointer text-red-500 size-4 top-[-1.6px] rounded-lg inline left-[-50px] relative" />
             </section>
 
@@ -749,7 +897,8 @@ export default function Home() {
                                     <th>Data</th>
                                     <th>Hora Início</th>
                                     <th>Hora Fim</th>
-                                    <th className="w-[130px] rounded-tr-lg">Tempo</th>
+                                    <th className="w-[130px]">Tempo</th>
+                                    <th className="rounded-tr-lg"></th>
                                 </tr>
                             </thead>
 
@@ -780,6 +929,13 @@ export default function Home() {
                                         <td className="p-2 text-center">
                                             {getTimeOs(os.HRINI_OS, os.HRFIM_OS)}
                                         </td>
+                                        <td>
+                                        <CiEdit 
+                                            onClick={() => handleEdit(os)}
+                                            style={{ cursor: "pointer" }} 
+                                            className="text-red-700 hover:text-red-500 text-center"
+                                            size={18}/>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -789,6 +945,7 @@ export default function Home() {
                                     <td colSpan={4} className="p-2 text-right text-orange-800">
                                         total: <b>{totalTimesOs()} hrs</b>
                                     </td>
+                                    
                                 </tr>
                             </tfoot>
                         </table>
