@@ -126,7 +126,7 @@ export default async function UpdateCallService(
                     CHAMADO_OS,
                     VRHR_OS,
                     COMP_OS
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                         COD_OS,
                         chamado.CODTRF_CHAMADO??task[0].COD_TAREFA,

@@ -434,7 +434,7 @@ export default function Home() {
         if (!result) return;
 
         getCalls();
-
+        getAllOs();        
         setModalStandby(false);
     }
 
