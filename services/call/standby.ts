@@ -124,7 +124,8 @@ export default async function UpdateCallService(
                     VALID_OS,
                     NUM_OS,
                     CHAMADO_OS,
-                    VRHR_OS
+                    VRHR_OS,
+                    COMP_OS
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                         COD_OS,
@@ -147,7 +148,8 @@ export default async function UpdateCallService(
                         'NAO', //VALID_OS
                         NUM_OS,
                         chamado.COD_CHAMADO,
-                        0
+                        0,
+                        new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit'})
                     ], async function (err: any, result: any) {
 
                         if (err) {
