@@ -29,7 +29,8 @@ export default async function UserService({ login, password } :{ login: string, 
                     U.COD_USUARIO,
                     U.SENHA, 
                     CAST(U.NOME_USUARIO AS VARCHAR(32000) CHARACTER SET WIN1252) AS NOME_USUARIO, 
-                    R.COD_RECURSO 
+                    R.COD_RECURSO,
+                    DTLIMITE_RECURSO 
                         FROM 
                     USUARIO U 
                         JOIN 
@@ -37,7 +38,8 @@ export default async function UserService({ login, password } :{ login: string, 
                         WHERE 
                     ID_USUARIO = ?`, 
                 [login.toUpperCase()], async function(err: any, result: any) {
-    
+
+                    
                     db.detach();
     
                     if (err) {
@@ -49,7 +51,8 @@ export default async function UserService({ login, password } :{ login: string, 
                         return reject("Usuário não encontrado");
                     }
     
-                    if(result[0]?.SENHA?.trim() != xorString(password?.trim())) {
+                    if(xorString(result[0]?.SENHA?.trim()) != password?.trim().toUpperCase()) {
+
                         return reject("Senha incorreta");
                     }
                     

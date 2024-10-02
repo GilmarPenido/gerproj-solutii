@@ -11,10 +11,11 @@ import { HiOutlineClipboardDocumentList } from "react-icons/hi2";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import Modal from "@/components/modal";
 import Loading from "@/components/loading";
-
+import { PiTrashDuotone } from "react-icons/pi";
 import { LuPointer } from "react-icons/lu";
 import   iconv from 'iconv-lite';
 import { CiEdit } from "react-icons/ci";
+import Swal from 'sweetalert2'
 
 export default function Home() {
     const { data: session } = useSession();
@@ -45,6 +46,8 @@ export default function Home() {
 
     const [directionOrder, setDirectionOrder] = useState<'asc' | 'desc'>('desc')
     const [selectedDate, setSelectedDate] = useState<string>('')
+
+    const [limitDate, setLimitDate] = useState<Date|undefined>()
     /*  const columns: GridColDef[] = [
          {
              field: 'COD_CHAMADO',
@@ -380,6 +383,12 @@ export default function Home() {
 
     async function standbyCall(chamado: ChamadosType | null) {
 
+
+        if(!validCurrentDate(date)) {
+            alert("Selecione uma data dentro do período vigente.");
+            return;
+        }
+
         if((!hours.initial) || (!hours.final) || (!date)) {
             alert("Selecione uma data e hora inicial/final");
             return;
@@ -493,7 +502,33 @@ export default function Home() {
         if (!session) return;
 
         getCalls();
+        getLimitDate();
     }, [session]);
+
+
+    function getLimitDate() {
+
+        fetch(
+            "/api/os/valid", {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            method: "POST",
+            body: JSON.stringify({
+                recurso: session?.user.recurso
+            })
+        }
+        )
+            .then((res) => res.json())
+            .then((res) => setLimitDate(new Date(res[0].DTLIMITE_RECURSO)))
+            .catch(() => {
+                setLoadingOs(false);
+            })
+
+
+
+
+    }
 
     function orderTo(field: string) {
 
@@ -536,9 +571,6 @@ export default function Home() {
     }
 
     function handleEdit(os: any) {
-
-
-
         setSelectedOs(os);
 
         setHours({
@@ -552,7 +584,51 @@ export default function Home() {
         setModalEditOS(true);
     }
 
+    async function handleDelete(os: any) {
+
+
+        const confirmacao = await Swal.fire({
+            title: 'Deseja excluir esta OS?',
+            text: "Esta ação não poderá ser desfeita!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sim, excluir!',
+            cancelButtonText: 'Cancelar'
+        })
+
+        if (confirmacao.isDenied || confirmacao.isDismissed) {
+            return;
+        }
+
+
+        setLoadingOs(true);
+
+        let result = await fetch("/api/os/delete", {
+            method: "POST",
+            body: JSON.stringify({
+                codOs: os.COD_OS
+            })
+        })
+            .then((res) => res.json())
+            .then((res) => res);
+
+        setLoadingOs(false);
+
+        if (!result) return;
+
+        
+        getCalls();
+        getAllOs();
+    }
+
     async function updateOs() {
+
+        if(!validCurrentDate(date)) {
+            alert("Selecione uma data dentro do período vigente.");
+            return;
+        }
 
         if((!hours.initial) || (!hours.final) || (!date)) {
             alert("Selecione uma data e hora inicial/final");
@@ -599,6 +675,12 @@ export default function Home() {
 
     }
 
+    function validCurrentDate(date: string): boolean {
+
+        let selectedDate = new Date(date);
+        return selectedDate > (limitDate??'')
+    }
+
     return (
         <main className="w-full h-full flex flex-col justify-center items-center p-4">
             {isOpenModal && (
@@ -622,7 +704,7 @@ export default function Home() {
                     title="Selecione a Tarefa do chamado!"
                     action={updateChamadoTarefa}
                 >
-                    <select name="tarefa" id="tarefa" onChange={(event) => setSelectedTask( event.target.value)}>
+                    <select title="tarefa" name="tarefa" id="tarefa" onChange={(event) => setSelectedTask( event.target.value)}>
                         <option value="">Selecione uma Tarefa</option>
                         {   
                             tasks.map((task: any, index) => (
@@ -691,6 +773,7 @@ export default function Home() {
                     <p>Chamado: {selectedOs?.COD_OS}</p>
                     <label>Descrição</label>
                     <textarea
+                        title="descricao"
                         rows={5}
                         className="w-full border-zinc-300 border-2 outline-none rounded-lg resize-none p-2"
                         value={description}
@@ -930,11 +1013,22 @@ export default function Home() {
                                             {getTimeOs(os.HRINI_OS, os.HRFIM_OS)}
                                         </td>
                                         <td>
-                                        <CiEdit 
-                                            onClick={() => handleEdit(os)}
-                                            style={{ cursor: "pointer" }} 
-                                            className="text-red-700 hover:text-red-500 text-center"
-                                            size={18}/>
+                                            {
+                                                validCurrentDate(os.DTINI_OS) &&
+                                                <div className="flex flex-row gap-2 justify-evenly">
+                                                    <CiEdit 
+                                                        onClick={() => handleEdit(os)}
+                                                        style={{ cursor: "pointer" }} 
+                                                        className="text-orange-700 hover:text-orange-500 text-center"
+                                                        size={18}/>
+                                                    <PiTrashDuotone
+                                                        onClick={() => handleDelete(os)}
+                                                        style={{ cursor: "pointer" }} 
+                                                        className="text-red-700 hover:text-red-500 text-center"
+                                                        size={18}
+                                                    />    
+                                                </div>
+                                            }
                                         </td>
                                     </tr>
                                 ))}

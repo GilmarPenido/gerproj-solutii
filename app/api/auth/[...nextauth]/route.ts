@@ -7,9 +7,13 @@ const handler = NextAuth({
       session({ session, token, user }) {
         session.user.recurso = session.user.email['COD_RECURSO']
         session.user.id = session.user.email['COD_USUARIO']
+        session.user.dataLimite = session.user.email['DTLIMITE_RECURSO']
         session.user.email = ""
         return session 
       },
+    },
+    session: {
+      maxAge: 24*60*60*3
     },
     providers: [
         CredentialsProvider({
