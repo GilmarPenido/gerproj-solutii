@@ -48,6 +48,7 @@ export default function Home() {
     const [selectedDate, setSelectedDate] = useState<string>('')
 
     const [limitDate, setLimitDate] = useState<Date|undefined>()
+    const [tomorrow, setTomorrow] = useState<Date|undefined>()
     /*  const columns: GridColDef[] = [
          {
              field: 'COD_CHAMADO',
@@ -508,6 +509,11 @@ export default function Home() {
 
     function getLimitDate() {
 
+        let tomorrow = (new Date(`${(new Date()).toISOString().split('T')[0]} 00:00`));
+        tomorrow.setDate(tomorrow.getDate() + 1)
+
+        setTomorrow(tomorrow)
+
         fetch(
             "/api/os/valid", {
             headers: {
@@ -678,7 +684,10 @@ export default function Home() {
     function validCurrentDate(date: string): boolean {
 
         let selectedDate = new Date(date);
-        return selectedDate > (limitDate??'')
+        let tomorrow = (new Date(`${(new Date()).toISOString().split('T')[0]} 00:00`));
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        
+        return selectedDate >= (limitDate??'') && selectedDate < tomorrow
     }
 
     return (
@@ -757,6 +766,8 @@ export default function Home() {
                             className="border-zync-300 border-2 outline-none rounded-lg p-2 w-[40%]"
                             onChange={(event) => setDate(event.target.value)}
                             value={date}
+                            min={limitDate?.toISOString()?.split('T')[0]}
+                            max={(new Date())?.toISOString()?.split('T')[0]}
                             type="date" />
                     </div>
                 </Modal>
@@ -871,7 +882,8 @@ export default function Home() {
                             <th className="cursor-pointer" onClick={_ => orderTo('ASSUNTO_CHAMADO')}>Assunto</th>
                             <th className="cursor-pointer" onClick={_ => orderTo('DTENVIO_CHAMADO')}>Data</th>
                             <th className="cursor-pointer" onClick={_ => orderTo('STATUS_CHAMADO')}>Status</th>
-                            <th className="w-[130px] rounded-tr-lg">Actions</th>
+                            <th>Actions</th>
+                            <th className="w-[130px] rounded-tr-lg">Arquivos</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -954,6 +966,7 @@ export default function Home() {
                                         size={18}
                                     />
                                 </td>
+                                <td><a href={"/api/arquivos?codChamado="+c?.COD_CHAMADO} target="_blank">Download</a></td>
                             </tr>
                         ))}
                     </tbody>
@@ -1030,6 +1043,9 @@ export default function Home() {
                                                 </div>
                                             }
                                         </td>
+
+                                        
+                                        
                                     </tr>
                                 ))}
                             </tbody>
