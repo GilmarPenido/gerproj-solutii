@@ -1,4 +1,4 @@
-export type TarefaType = {
+export type TaskType = {
     COD_TAREFA: string
     NOME_TAREFA: string
     CODPRO_TAREFA: string
@@ -14,7 +14,7 @@ export type TarefaType = {
 
 
 
-export enum STATUS_TAREFA {
+export enum STATUS_TASK {
     'EM ATENDIMENTO' = '2',
     'ATRIBUIDO' = '1',
     'STANDBY' = '3',

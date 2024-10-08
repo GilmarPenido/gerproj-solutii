@@ -16,15 +16,18 @@ import { LuPointer } from "react-icons/lu";
 import   iconv from 'iconv-lite';
 import { CiEdit } from "react-icons/ci";
 import Swal from 'sweetalert2'
+import { STATUS_TASK, TaskType } from "@/models/tarefa";
 
 export default function Home() {
     const { data: session } = useSession();
     const [calls, setCalls] = useState<ChamadosType[]>([]);
     const [tab, setTab] = useState<"chamado" | "os">("chamado");
+    const [projes, setProjes] = useState<TaskType[]>([]);
     const [isOpenModal, setOpenModal] = useState(false);
     const [description, setDescription] = useState("");
     const [selectedCall, setSelectedCall] = useState<ChamadosType | null>(null);
     const [selectedOs, setSelectedOs] = useState<any | null>(null);
+    const [selectedProj, setSelectedProj] = useState<TaskType | null>(null);
    
     const [modalStandby, setModalStandby] = useState(false);
     const [modalTarefa, setModalTarefa] = useState(false);
@@ -49,92 +52,7 @@ export default function Home() {
 
     const [limitDate, setLimitDate] = useState<Date|undefined>()
     const [tomorrow, setTomorrow] = useState<Date|undefined>()
-    /*  const columns: GridColDef[] = [
-         {
-             field: 'COD_CHAMADO',
-             headerName: 'Número',
-             width: 80
-         },
-         {
-             field: 'ASSUNTO_CHAMADO',
-             headerName: 'Assunto',
-             width: 450,
-             editable: true,
-         },
-         {
-             field: 'DTENVIO_CHAMADO',
-             headerName: 'Data',
-             width: 150,
-             editable: true,
-         },
-         {
-             field: 'STATUS_CHAMADO',
-             headerName: 'Status',
-             type: 'number',
-             width: 150,
-             editable: true,
-         },
-         {
-             field: 'action',
-             headerName: 'Actions',
-             description: 'This column has a value getter and is not sortable.',
-             sortable: false,
-             width: 150,
-             renderCell: ( { row }) => (
-                 <div className="text-center flex flex-row  gap-2 flex-nowrap justify-between p-2">
-                     
-                     {row?.STATUS_CHAMADO !== "EM ATENDIMENTO" && (
-                         <VscDebugStart
-                             onClick={(_) => startCall(row)}
-                             title="EM ATENDIMENTO"
-                             style={{ cursor: "pointer" }}
-                             className="text-green-600 hover:text-green-400"
-                             size={18}
-                         />
-                     )}
- 
-                     {row?.STATUS_CHAMADO !== "STANDBY" &&
-                         row?.STATUS_CHAMADO !== "AGUARDANDO VALIDACAO" &&
-                         row?.STATUS_CHAMADO !== "ATRIBUIDO" && (
-                             <PiPauseDuotone
-                                 title="STANDBY"
-                                 onClick={(_) => setModalStandby(true)}
-                                 style={{ cursor: "pointer" }}
-                                 className="text-yellow-500 hover:text-yellow-300"
-                                 size={18}
-                             />
-                         )}
- 
-                     {row?.STATUS_CHAMADO !== "AGUARDANDO  VALIDACAO" &&
-                         row?.STATUS_CHAMADO !== "ATRIBUIDO" && (
-                             <ImStop
-                                 title="AGUARDANDO VALIDAÇÃO"
-                                 style={{ cursor: "pointer" }}
-                                 className="text-red-700 hover:text-red-500"
-                                 size={18}
-                             />
-                         )}
- 
-                     {row?.STATUS_CHAMADO !== "ATRIBUIDO" && (
-                         <TbCalendarCheck
-                             title="FINALIZADO"
-                             style={{ cursor: "pointer" }}
-                             className="text-orange-500 hover:text-orange-300"
-                             size={18}
-                         />
-                     )}
- 
-                     <HiOutlineClipboardDocumentList
-                         onClick={() => openDescriptions(row)}
-                         title="Detalhamento"
-                         style={{ cursor: "pointer" }}
-                         className="text-fuchsia-700 hover:text-fuchsia-500"
-                         size={18}
-                     />
-                 </div>
-             ),
-         },
-     ]; */
+
 
     function insertOs(event: FormEvent) {
         event.preventDefault();
@@ -164,6 +82,10 @@ export default function Home() {
 
     function changeSelectedCall(chamado: ChamadosType) {
         setSelectedCall(() => chamado);
+    }
+
+    function changeSelectedCallTrf(task: TaskType) {
+        setSelectedProj(() => task);
     }
 
     function validRangeTime() {
@@ -313,6 +235,39 @@ export default function Home() {
         setListOs(result);
     }
 
+    async function getAllOsTarefa(date: string = '') {
+        setLoadingOs(true);
+
+        let result = await fetch(
+            "/api/os/list-for-trf", {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            method: "POST",
+            body: JSON.stringify({
+                tarefa: selectedProj?.COD_TAREFA,
+                data: date,
+                recurso: session?.user.recurso
+            })
+        }
+        )
+            .then((res) => res.json())
+            .then((res) => res)
+            .catch(() => {
+                setLoadingOs(false);
+            })
+            .finally(() => {
+                setLoadingOs(false);
+            });
+
+        if (!result) {
+            setListOs([]);
+            return;
+        }
+
+        setListOs(result);
+    }
+
     async function getCalls() {
         let result = await fetch("/api/call/list?recurso=" + session?.user.recurso)
             .then((res) => res.json())
@@ -323,6 +278,15 @@ export default function Home() {
         setCalls(result);
     }
 
+    async function getTasksProject() {
+        let result = await fetch("/api/os/list?recurso=" + session?.user.recurso)
+            .then((res) => res.json())
+            .then((res) => res);
+
+        if (!result) return;
+
+        setProjes(result);
+    }
 
     async function changeStatus(chamado: ChamadosType, status: string) {
 
@@ -536,10 +500,20 @@ export default function Home() {
         getAllOs();
     }, [selectedCall]);
 
+
+    useEffect(() => {
+        if (!selectedProj) return;
+
+        getAllOsTarefa();
+    }, [selectedProj]);
+
+    
+
     useEffect(() => {
         if (!session) return;
 
         getCalls();
+        getTasksProject();
         getLimitDate();
     }, [session]);
 
@@ -626,6 +600,7 @@ export default function Home() {
 
         setModalEditOS(true);
     }
+    
 
     async function handleDelete(os: any) {
 
@@ -729,7 +704,7 @@ export default function Home() {
 
     return (
         <main className="w-full h-full flex flex-col justify-center items-center p-4">
-            {isOpenModal && (
+            {isOpenModal && 
                 <Modal
                     isOpen={isOpenModal}
                     setOpenModal={setOpenModal}
@@ -740,10 +715,9 @@ export default function Home() {
                         dangerouslySetInnerHTML={{ __html: description }}
                     ></p>
                 </Modal>
-            )}
+            }
 
-            {
-                modalTarefa &&
+            {modalTarefa &&
                 <Modal 
                     isOpen={modalTarefa}
                     setOpenModal={setModalTarefa}
@@ -871,27 +845,28 @@ export default function Home() {
 
             <section className="flex flex-row justify-center w-full margin-auto max-w-[800px]">
                 <h2
+                    onClick={() => setTab('chamado')}
                     className={
                         tab === "chamado"
-                            ? "bg-orange-700 w-[50%] text-center text-white h-8 p-1"
-                            : "bg-zinc-100 w-[50%] text-center text-zinc-700 h-8 p-1"
+                            ? "bg-orange-700 w-[50%] text-center text-white h-8 p-1 rounded-l-lg"
+                            : "bg-zinc-100 w-[50%] text-center text-zinc-700 h-8 p-1 rounded-l-lg cursor-pointer"
                     }
                 >
                     Chamado
                 </h2>
                 <h2
+                    onClick={() => setTab('os')}
                     className={
                         tab === "os"
-                            ? "bg-orange-700 w-[50%] text-center text-white h-8 p-1"
-                            : "bg-zinc-100 w-[50%] text-center text-zinc-700 h-8 p-1 line-through"
+                            ? "bg-orange-700 w-[50%] text-center text-white h-8 p-1 rounded-r-lg"
+                            : "bg-zinc-100 w-[50%] text-center text-zinc-700 h-8 p-1 rounded-r-lg cursor-pointer"
                     }
                 >
-                    OS (em breve)
+                    OS
                 </h2>
             </section>
 
-
-
+            {tab === "chamado" ?         
             <section className="w-full sm:text-sm text-xs pt-6 overflow-auto">
 
                 {/* <Box sx={{ height: 400, width: "100%" }}>
@@ -1009,6 +984,107 @@ export default function Home() {
                     </tbody>
                 </table>
             </section>
+            :
+            <section className="w-full sm:text-sm text-xs pt-6 overflow-auto">
+
+                <table className="w-full min-w-full border-collapse rounded-lg">
+                    <thead>
+                        <tr className="text-cyan-100 bg-cyan-900 h-12 rounded-tl-lg rounded-tr-lg">
+                            <th onClick={_ => orderTo('COD_TAREFA')} className="rounded-tl-lg cursor-pointer">Número</th>
+                            <th className="cursor-pointer" onClick={_ => orderTo('NOME_TAREFA')}>Assunto</th>
+                            <th className="cursor-pointer" onClick={_ => orderTo('DTSOL_TAREFA')}>Data</th>
+                            <th className="cursor-pointer" onClick={_ => orderTo('STATUS_TAREFA')}>Status</th>
+                            <th>Actions</th>
+                            <th className="w-[130px] rounded-tr-lg">Arquivos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {projes.map((c: any, k: number) => (
+                            <tr
+                                key={`${k}call`}
+                                className={"odd:bg-zinc-100 p-4 border-2" +
+                                    (c?.COD_TAREFA === selectedProj?.COD_TAREFA
+                                        ? " !bg-indigo-200 outline-2"
+                                        : "")
+                                }
+                                onClick={() => changeSelectedCallTrf(c) }
+                            >
+                                <td className="text-center p-2">
+                                    {c?.COD_TAREFA?.toLocaleString("pt-br")}
+                                </td>
+                                <td className="text-start  p-2">{c?.NOME_TAREFA}</td>
+                                <td className="text-center  p-2">
+                                    {(new Date(c?.DTSOL_TAREFA)).toLocaleString("pt-br").slice(0,10)}
+                                </td>
+                                <td className="text-center  p-2">{c?.STATUS_TAREFA}</td>
+                                <td className="text-center flex flex-row gap-4 sm:gap-2 sm:flex-nowrap flex-wrap  sm:justify-between justify-center  max-w-[130px] p-2">
+
+                                    <LuPointer 
+                                        onClick={(e) => {e.stopPropagation()} }
+                                        title="APONTAMENTO"
+                                        style={{ cursor: "pointer" }}
+                                        className="text-indigo-900 hover:text-indigo-500"
+                                        size={18}
+                                    />
+
+                                    {c.STATUS_TAREFA !== "EM ATENDIMENTO" && (
+                                        <VscDebugStart
+                                            onClick={(e) =>  { /* e.stopPropagation(); startCall(c);*/}}
+                                            title="EM ATENDIMENTO"
+                                            style={{ cursor: "pointer" }}
+                                            className="text-green-600 hover:text-green-400"
+                                            size={18}
+                                        />
+                                    )}
+
+                                    {c.STATUS_TAREFA !== "STANDBY" &&
+                                        c.STATUS_TAREFA !== "AGUARDANDO VALIDACAO" &&
+                                        c.STATUS_TAREFA !== "ATRIBUIDO" && (
+                                            <PiPauseDuotone
+                                                title="STANDBY"
+                                                onClick={(e) => { setModalStandby(true) }}
+                                                style={{ cursor: "pointer" }}
+                                                className="text-yellow-500 hover:text-yellow-300"
+                                                size={18}
+                                            />
+                                        )}
+
+                                    {c.STATUS_TAREFA !== "AGUARDANDO VALIDACAO" &&
+                                        c.STATUS_TAREFA !== "ATRIBUIDO" && (
+                                            <ImStop
+                                                onClick={(e) =>  { /* e.stopPropagation(); */changeStatus(c, STATUS_TASK['AGUARDANDO VALIDACAO']);}}
+                                                title="AGUARDANDO VALIDAÇÃO"
+                                                style={{ cursor: "pointer" }}
+                                                className="text-red-700 hover:text-red-500"
+                                                size={18}
+                                            />
+                                        )}
+
+                                    {c.STATUS_TAREFA !== "ATRIBUIDO" && (
+                                        <TbCalendarCheck
+                                            onClick={(e) =>  { /* e.stopPropagation(); */changeStatus(c, STATUS_TASK['FINALIZADO']);}}
+                                            title="FINALIZADO"
+                                            style={{ cursor: "pointer" }}
+                                            className="text-orange-500 hover:text-orange-300"
+                                            size={18}
+                                        />
+                                    )}
+
+                                    <HiOutlineClipboardDocumentList
+                                        onClick={() => openDescriptions(c)}
+                                        title="Detalhamento"
+                                        style={{ cursor: "pointer" }}
+                                        className="text-fuchsia-700 hover:text-fuchsia-500"
+                                        size={18}
+                                    />
+                                </td>
+                                <td><a href={"/api/arquivos?codTarefa="+c?.COD_TAREFA} target="_blank">Download</a></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </section>
+            }
 
             <section className="w-full sm:text-sm text-xs pt-6 overflow-auto">
                 <input placeholder="Selecione uma data" type="date" value={selectedDate} onChange={changeSelectedDate} className="h-8 p-2 w-[160px] outline-none border-2 border-zinc-200 rounded-md" />

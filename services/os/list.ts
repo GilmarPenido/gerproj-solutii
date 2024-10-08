@@ -98,6 +98,101 @@ export default (function OsService() {
         })
     }
 
+
+    function listOsTarefa(tarefa: string,  recurso: string, data: string): Promise<ChamadosType[]> {
+        return new Promise((resolve, reject) => {
+
+            Firebird.attach(options, function (err: any, db: any) {
+
+                if (err) {
+                    return reject(err)
+                }
+
+                // db = DATABASE
+                db.query(`
+                    SELECT
+                    OS.OBS,
+                    OS.COD_OS,
+                    OS.DTINI_OS,
+                    OS.HRINI_OS,
+                    OS.HRFIM_OS,
+                    CLIENTE.NOME_CLIENTE
+                        FROM OS
+                        LEFT JOIN CHAMADO ON (OS.chamado_os = CHAMADO.cod_chamado)
+                        LEFT JOIN TAREFA ON (TAREFA.cod_tarefa = OS.codtrf_os)
+                        LEFT JOIN PROJETO ON (PROJETO.cod_projeto = TAREFA.codpro_tarefa)
+                        LEFT JOIN CLIENTE ON (CLIENTE.cod_cliente = PROJETO.codcli_projeto)
+                        
+                    where 
+                        ${data ? 'DTINI_OS' : 'CODTRF_OS'} = ? 
+                            AND
+                        CODREC_OS = ? `,
+                    [data ? data : tarefa, recurso], async function (err: any, result: any) {
+
+                       
+                        if (err) {
+                            console.log(err)
+                            db.detach();
+                            return reject(err)
+                        }
+
+                        const resultParseBlob: any = []
+
+                        const length = result.length
+
+
+                        for(let i = 0; i < length; i++) {
+
+
+                            const blob = result[i].OBS;
+                            blob(function(err: any, name: any, stream: any) {
+                                if (err) {
+                                    console.error('Erro ao ler o BLOB:', err);
+                                    db.detach();
+                                    return;
+                                }
+                    
+                                let chunks: any = [];
+                    
+                                stream.on('data', function(chunk: any) {
+                                    chunks.push(chunk);
+                                });
+                    
+                                stream.on('end', function() {
+                                    // Converter o buffer para string
+                                    const buffer = Buffer.concat(chunks);
+                                    const blobText = iconv.decode(buffer, 'ISO-8859-1');
+                                    result[i].OBS = blobText
+                                    resultParseBlob[i] = result[i]
+                                    
+
+                                    if(i+1 === length) {
+                                        resolve(resultParseBlob)
+                                    }
+                                });
+                            });
+                        }
+                        
+
+
+
+                        if(!result.length) {
+
+                            // Fechar a conexão com o banco de dados
+                            db.detach();
+                            return resolve(result)
+                            // IMPORTANT: close the connection
+                        }
+                        
+                        
+
+
+                    });
+
+            });
+        })
+    }
+
     function details(chamado: string, recurso: string): Promise<ChamadoLimitType[]> {
         return new Promise((resolve, reject) => {
 
@@ -238,7 +333,7 @@ export default (function OsService() {
         )}
     
     return {
-            list, insert
+            list, insert, listOsTarefa
         }
 
 

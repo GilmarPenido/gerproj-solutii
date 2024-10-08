@@ -1,8 +1,8 @@
 import { ChamadosType } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
-import { TarefaType } from "@/models/tarefa";
+import { TaskType } from "@/models/tarefa";
 
-export default async function ListTaskService(recurso: string): Promise<TarefaType[]> {
+export default async function ListTaskService(recurso: string): Promise<TaskType[]> {
     
 
     return new Promise((resolve, reject) => {
@@ -26,15 +26,15 @@ export default async function ListTaskService(recurso: string): Promise<TarefaTy
                     STATUS_TAREFA,
                     CAST(OBS_TAREFA AS VARCHAR(32000)) AS  OBS_TAREFA
                 FROM 
-                    CHAMADO 
+                    TAREFA 
                         WHERE 
                     CODREC_TAREFA = ? 
                         AND 
-                    STATUS_CHAMADO <> ?
+                    STATUS_TAREFA = ?
                         AND
                     EXIBECHAM_TAREFA = ?`
                     ,
-                [recurso, 4, 0], async function (err: any, result: any) {
+                [recurso, 1, 0], async function (err: any, result: any) {
 
                     db.detach();
 

@@ -6,21 +6,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 async function handlerPost(request: NextRequest) {
   
   const  {
-    chamado,
+    tarefa,
     data,
     recurso,
   } = await request.json()
 
-  const response = await OsService.list(chamado, recurso, data)
+  const response = await OsService.listOsTarefa(tarefa, recurso, data)
   return NextResponse.json(response)
 }
 
-async function handlerGet(request: NextRequest) {
 
-  const { searchParams } = new URL(request.url)
-  const recurso = searchParams.get('recurso')  
-  const response = await ListTaskService(`${recurso}`)
-  return NextResponse.json(response)
-}
 
-export { handlerPost as POST,  handlerGet as GET};
+export { handlerPost as POST };
