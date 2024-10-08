@@ -98,7 +98,7 @@ export default (function OsService() {
         })
     }
 
-    function details(chamado: string): Promise<ChamadoLimitType[]> {
+    function details(chamado: string, recurso: string): Promise<ChamadoLimitType[]> {
         return new Promise((resolve, reject) => {
 
             Firebird.attach(options, function (err: any, db: any) {
@@ -113,10 +113,14 @@ export default (function OsService() {
                         FROM
                     CHAMADO C
                         JOIN
-                    OS O on O.chamado_os = C.cod_chamado and      C.cod_chamado = ?
+                    OS O on O.chamado_os = C.cod_chamado and C.cod_chamado = ?
                         JOIN
-                    TAREFA T on T.cod_tarefa = O.codtrf_os`,
-                    [chamado], async function (err: any, result: any) {
+                    TAREFA T on T.cod_tarefa = O.codtrf_os
+                        WHERE
+                    O.cod_recurso = ?
+                    
+                    `,
+                    [chamado, recurso], async function (err: any, result: any) {
 
                         db.detach();
 
