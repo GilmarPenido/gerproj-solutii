@@ -417,6 +417,43 @@ export default function Home() {
             return;
         }
 
+
+        let responseValidHours = await fetch("/api/call/valid-hours", {
+            method: "POST",
+            body: JSON.stringify({
+                chamado: chamado.COD_CHAMADO,
+                date,
+                startTime: hours.initial,
+                endTime: hours.final,
+            })
+        })
+        .then((res) => res.json())
+        .then((res) => res);
+
+
+        if(responseValidHours && responseValidHours[0] < responseValidHours[1]) {
+
+            let horasTotais =  responseValidHours[0] / 60
+            let horasApontadas = responseValidHours[1] / 60
+
+            const confirmacao = await Swal.fire({
+                title: `Horas mês: ${horasTotais}h`,
+                text: `Horas para está tarefa já ultrapassaram o limite do mês, total final após apontamento: ${horasApontadas}h`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirmar apontamento!',
+                cancelButtonText: 'Cancelar'
+            })
+
+            if (confirmacao.isDenied || confirmacao.isDismissed) {
+                return;
+            }
+
+        }
+
+
         let task = await fetch("/api/get-task", {
             method: "POST",
             body: JSON.stringify({

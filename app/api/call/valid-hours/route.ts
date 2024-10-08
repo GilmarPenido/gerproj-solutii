@@ -7,16 +7,13 @@ async function handler(request: NextRequest) {
   const {
     chamado,
     date,
-    description,
     endTime,
     startTime,
-    state,
-    task
   } = await request.json();
 
 
   try {
-    const response = await ValidHoursService(chamado, description, date, startTime, endTime, state, task)
+    const response = await ValidHoursService(chamado, date, startTime, endTime)
 
     return NextResponse.json(response)
   } catch(error) {

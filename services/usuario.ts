@@ -45,11 +45,27 @@ export default async function UserService({ login, password } :{ login: string, 
                     if (err) {
                         return reject(err.message())
                     } 
-    
+                    
+
+                    console.log(`SELECT 
+                        U.COD_USUARIO,
+                        U.SENHA, 
+                        CAST(U.NOME_USUARIO AS VARCHAR(32000) CHARACTER SET WIN1252) AS NOME_USUARIO, 
+                        R.COD_RECURSO,
+                        DTLIMITE_RECURSO 
+                            FROM 
+                        USUARIO U 
+                            JOIN 
+                        RECURSO R ON (U.COD_USUARIO = R.CODUSR_RECURSO) 
+                            WHERE 
+                        ID_USUARIO = ${login.toUpperCase()}`)
+                    console.log(result)
                     
                     if(! result.length ) {
                         return reject("Usuário não encontrado");
                     }
+
+                    console.log(result[0]?.SENHA?.trim() != password?.trim().toUpperCase(), result[0]?.SENHA?.trim() , password?.trim().toUpperCase())
     
                     if(xorString(result[0]?.SENHA?.trim()) != password?.trim().toUpperCase()) {
 

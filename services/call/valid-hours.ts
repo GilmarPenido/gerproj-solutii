@@ -3,12 +3,10 @@ import { Firebird, options } from "../firebird";
 
 export default async function ValidHoursService(
     chamado: any,
-    description: string,
     date: string,
     startTime: string,
-    endTime: string,
-    state: any,
-    task: any): Promise<boolean> {
+    endTime: string
+): Promise<any[]> {
 
 
     return new Promise(async (resolve, reject) => {
@@ -26,168 +24,71 @@ export default async function ValidHoursService(
                 })
             })
 
-            let newID: number = await new Promise((resolve, reject) => {
+            let [codTarefa, limmesTarefa]: [codTarefa: string, limmesTarefa: string] = await new Promise((resolve, reject) => {
 
-                db.query(`SELECT MAX(COD_HISTCHAMADO) + 1 as ID FROM HISTCHAMADO`,
-                    [], async function (err: any, res: any) {
+                db.query(`SELECT COD_TAREFA, LIMMES_TAREFA FROM TAREFA WHERE COD_TAREFA IN (SELECT CODTRF_CHAMADO FROM CHAMADO where COD_CHAMADO = ?)`,
+                    [chamado], async function (err: any, res: any) {
                         if (err) {
                             db.detach()
                             return reject(err);
                         }
-                        return resolve(res[0]['ID'])
+                        return resolve([res[0]['COD_TAREFA'], res[0]['LIMMES_TAREFA']])
                     })
             })
-   
-            const transaction: any = await new Promise((resolve, reject) => {
-                db.transaction(Firebird.ISOLATION_READ_COMMITTED, (err: any, transaction: any) => {
-                    if (err) {
-                        db.detach()
-                        return reject(err)
-                    }
-                    return resolve(transaction)
-                })
-            })
-
-            let success = await new Promise((resolve, reject) => {
-
-                transaction.query(`
-                        UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ?`,
-                    [state, chamado.COD_CHAMADO], async function (err: any, result: any) {
-                        if (err) {
-                            db.detach()
-                            transaction.rollback();
-                            return reject(err)
-                        }
-
-                        return resolve(true)
-                    });
-
-            })
 
 
-            success = await new Promise((resolve, reject) => {
-                transaction.query(`INSERT INTO HISTCHAMADO (COD_HISTCHAMADO, COD_CHAMADO, DATA_HISTCHAMADO, HORA_HISTCHAMADO, DESC_HISTCHAMADO) VALUES (?, ?, ?, ?, ?)`,
-                    [
-                        newID,
-                        chamado.COD_CHAMADO,
-                        new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
-                        new Date().toLocaleString('pt-br', { hour: '2-digit', minute: '2-digit' }).replaceAll(':', ''),
-                        state
-                    ], async function (err: any, result: any) {
+            if (!(parseInt(limmesTarefa) > 0)) {
 
-                        if (err) {
-                            transaction.rollback();
-                            db.detach()
-                            return reject(err)
-                        }
+                return resolve([])
 
-                        return resolve(true)
+            }
 
-                        
-                    });
-            })
 
-            let [COD_OS, NUM_OS] = await new Promise<[number, number|string]>((resolve, reject) => {
+            let responseHrsTotais: [] = await new Promise((resolve, reject) => {
 
-                db.query(`SELECT MAX(COD_OS) + 1 as COD_OS, MAX(NUM_OS) as NUM_OS FROM OS`,
-                    [], async function (err: any, res: any) {
+                db.query(`select HRINI_OS, HRFIM_OS from OS where CODTRF_OS =  ?  and dtini_os >= ? and dtini_os <= ?`,
+                    [codTarefa, date, date], async function (err: any, res: any) {
                         if (err) {
                             db.detach()
                             return reject(err);
                         }
-                        return resolve([res[0]['COD_OS'], res[0]['NUM_OS']])
+                        return resolve(res)
                     })
             })
-            
-            NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6) 
-            
-            success = await new Promise((resolve, reject) => {
-                transaction.query(
-                `insert into OS (
-                    COD_OS,
-                    CODTRF_OS,
-                    DTINI_OS,
-                    HRINI_OS,
-                    HRFIM_OS,
-                    OBS_OS,
-                    STATUS_OS,
-                    PRODUTIVO_OS,
-                    CODREC_OS,
-                    PRODUTIVO2_OS,
-                    RESPCLI_OS,
-                    OBS,
-                    REMDES_OS,
-                    ABONO_OS,
-                    DTINC_OS,
-                    FATURADO_OS,
-                    PERC_OS,
-                    VALID_OS,
-                    NUM_OS,
-                    CHAMADO_OS,
-                    VRHR_OS,
-                    COMP_OS
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        COD_OS,
-                        chamado.CODTRF_CHAMADO??task[0].COD_TAREFA,
-                        new Date(`${date} 00:00`).toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
-                        startTime.replace(":", ""),
-                        endTime.replace(":", ""),
-                        chamado.ASSUNTO_CHAMADO,
-                        STATUS_CHAMADO_COD['STANDBY'],
-                        'SIM',  //PRODUTIVO_OS
-                        chamado.COD_RECURSO,
-                        'SIM',  //PRODUTIVO2_OS
-                        task[0].RESPCLI_PROJETO, //RESPCLI_OS
-                        description,
-                        'NAO',
-                        'NAO',
-                        new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
-                        'SIM',  //FATURADO_OS
-                        100, //PERC_OS
-                        'NAO', //VALID_OS
-                        NUM_OS,
-                        chamado.COD_CHAMADO,
-                        0,
-                        new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit'})
-                    ], async function (err: any, result: any) {
 
-                        if (err) {
-                            console.log(10,err)
-                            transaction.rollback();
-                            db.detach()
-                            return reject(err)
-                        }
 
-                        return resolve(true)
+            if (!responseHrsTotais) {
+                return resolve([])
+            }
 
-                        
-                    });
-            })
 
-            console.log(7)
+            const getTimeToMinutes = (hrIni: string, hrFim: string): any => {
 
-            /**
-             * COD_OS, CODTRF_OS, DTINI_OS, HRINI_OS, HRFIM_OS, STATUS (1 - LEVANTAMENTO, 2 - DESENVOLVIMENTO, 3 - TESTE, 4 - CONCLUIDO), ?, PRODUTIVO_OS ('SIM'), CODREC_OS, PRODUTIVO2_OS ('SIM'), RESPCLI_OS, REMDES_OS ('NAO'), ABONO_OS ('NAO'), DESLOC_OS (0000), OBS (BLOB), DTINC_OS (DATA DE INCLUSAO), FATURADO_OS, PERC_OS (100), COMP_OS (MES VIGENTE), VALID_OS, VRHR_OS, NUM_OS, CHAMADO_OS
-             */
+                let minutesIni = parseInt(hrIni.slice(2, 4))
+                minutesIni += parseInt(hrIni.slice(0, 2)) * 60
 
-            success = await transaction.commit((err: Error) => {
-                if (err) {
-                    console.log(8)
-                    transaction.rollback();
-                    return reject(err)
-                }
-                else {
-                    console.log(9)
-                    db.detach();
-                    return resolve(true)
-                }
+                let minutesFim = parseInt(hrFim.slice(2, 4))
+                minutesFim += parseInt(hrFim.slice(0, 2)) * 60
 
-            });
+                return minutesFim - minutesIni
+
+            }
+
+
+            var minTotais = responseHrsTotais.reduce((acum, response) => {
+                console.log(acum, getTimeToMinutes(response['HRINI_OS'], response['HRFIM_OS']))
+                return (acum + getTimeToMinutes(response['HRINI_OS'], response['HRFIM_OS']))
+
+            }, getTimeToMinutes(startTime.replaceAll(':', ''), endTime.replaceAll(':', '')))
+
+
+
+            let limmesTarefaMin = parseInt(limmesTarefa) * 60
+
+            return resolve([limmesTarefaMin, minTotais])
 
 
         } catch (err) {
-            console.log(10, err)
             db.detach();
             return reject(err)
         }
