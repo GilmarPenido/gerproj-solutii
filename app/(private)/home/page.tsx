@@ -30,6 +30,8 @@ export default function Home() {
     const [selectedProj, setSelectedProj] = useState<TaskType | null>(null);
    
     const [modalStandby, setModalStandby] = useState(false);
+    const [modalApontamento, setModalApontamento] = useState(false);
+    
     const [modalTarefa, setModalTarefa] = useState(false);
     const [modalEditOS, setModalEditOS] = useState(false);
     const [textArea, setTextArea] = useState("");
@@ -345,6 +347,112 @@ export default function Home() {
         setOpenModal(false);
         getCalls();
     }
+
+    async function apontamento(os: TaskType | null) {
+
+
+        if(!validCurrentDate(date)) {
+            alert("Selecione uma data dentro do período vigente.");
+            return;
+        }
+
+        if((!hours.initial) || (!hours.final) || (!date)) {
+            alert("Selecione uma data e hora inicial/final");
+            return;
+        }
+
+
+        if( hours.initial > hours.final) {
+
+            alert("Hora inicial não pode ser maior que a hora final!")
+            return;
+
+        }
+
+        if(description.trim() === "") {
+
+            console.log(description)
+
+            alert("Descrição do apontamento é obrigatória!")
+            return;
+        }
+
+     
+        if (!os) {
+            alert("Selecione um projeto!");
+            return;
+        }
+
+        //criar uma função identica a esta para validar as horas do projeto
+
+        /* let responseValidHours = await fetch("/api/call/valid-hours", {
+            method: "POST",
+            body: JSON.stringify({
+                chamado: chamado.COD_CHAMADO,
+                date,
+                startTime: hours.initial,
+                endTime: hours.final,
+            })
+        })
+        .then((res) => res.json())
+        .then((res) => res); 
+
+
+        if(responseValidHours && responseValidHours[0] < responseValidHours[1]) {
+
+            let horasTotais =  responseValidHours[0] / 60
+            let horasApontadas = responseValidHours[1] / 60
+
+            const confirmacao = await Swal.fire({
+                title: `Horas mês: ${horasTotais}h`,
+                text: `Horas para está tarefa já ultrapassaram o limite do mês, total final após apontamento: ${horasApontadas}h`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirmar apontamento!',
+                cancelButtonText: 'Cancelar'
+            })
+
+            if (confirmacao.isDenied || confirmacao.isDismissed) {
+                return;
+            }
+
+        }*/
+
+
+        let task = await fetch("/api/get-task", {
+            method: "POST",
+            body: JSON.stringify({
+                COD_CHAMADO: selectedCall?.COD_CHAMADO
+            })
+        })
+            .then((res) => res.json())
+            .then((res) => res);
+
+        let result = await fetch("/api/os/apoint", {
+            method: "POST",
+            body: JSON.stringify({
+                os,
+                description,
+                date,
+                startTime: hours.initial,
+                endTime: hours.final,
+                recurso: session?.user.recurso,
+                state: 'STANDBY',
+                task
+            })
+        })
+            .then((res) => res.json())
+            .then((res) => res);
+
+        if (!result) return;
+
+        getCalls();
+        getAllOs();        
+        setModalStandby(false);
+    }
+
 
     async function standbyCall(chamado: ChamadosType | null) {
 
@@ -833,6 +941,54 @@ export default function Home() {
                 </Modal>
             }
 
+            {modalApontamento && (
+                <Modal
+                    isOpen={modalApontamento}
+                    setOpenModal={setModalApontamento}
+                    title="Apontamento"
+                    action={() => apontamento(selectedOs)}
+                >
+                    <label>Descrição</label>
+                    <textarea
+                        rows={5}
+                        className="w-full border-zinc-300 border-2 outline-none rounded-lg resize-none p-2"
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                    />
+
+                    <p>Horas</p>
+
+                    <div className="w-full flex flex-row justify-between gap-8 pt-2">
+                        <input
+                            className="border-zync-300 border-2 outline-none rounded-lg p-2 w-[40%]"
+                            onChange={(event) => updateInitialHour(event.target.value)}
+                            onBlur={event => updateInitialHour(validTime(event.target.value))}
+                            value={hours.initial}
+                            type="time"
+                        />
+                        <input
+                            className="border-zync-300 border-2 outline-none rounded-lg p-2 w-[40%]"
+                            onChange={(event) => updateFinalHour(event.target.value)}
+                            onBlur={event => updateFinalHour(validTime(event.target.value))}
+                            value={hours.final}
+                            type="time"
+                        />
+                    </div>
+
+                    <p className="pt-4">Data</p>
+                    <div className="w-full flex flex-row justify-between gap-8 pt-2">
+                            
+                        <input
+                            className="border-zync-300 border-2 outline-none rounded-lg p-2 w-[40%]"
+                            onChange={(event) => setDate(event.target.value)}
+                            value={date}
+                            min={limitDate?.toISOString()?.split('T')[0]}
+                            max={(new Date())?.toISOString()?.split('T')[0]}
+                            type="date" />
+                    </div>
+                </Modal>
+            )}
+
             <header className="flex flex-row w-full justify-around p-4">
                 <p className="text-blue-500">{iconv.decode(session?.user.name??'', 'ISO-8859-1')}</p>
                 <p
@@ -919,14 +1075,13 @@ export default function Home() {
                                 <td className="text-center  p-2">{c?.STATUS_CHAMADO}</td>
                                 <td className="text-center flex flex-row gap-4 sm:gap-2 sm:flex-nowrap flex-wrap  sm:justify-between justify-center  max-w-[130px] p-2">
 
-                                    <LuPointer 
+                                    {/* <LuPointer 
                                         onClick={(e) => {e.stopPropagation()} }
                                         title="APONTAMENTO"
                                         style={{ cursor: "pointer" }}
                                         className="text-indigo-900 hover:text-indigo-500"
                                         size={18}
-                                    />
-
+                                    />*/}
                                     {c.STATUS_CHAMADO !== "EM ATENDIMENTO" && (
                                         <VscDebugStart
                                             onClick={(e) =>  { /* e.stopPropagation(); */startCall(c);}}
@@ -992,10 +1147,10 @@ export default function Home() {
                         <tr className="text-cyan-100 bg-cyan-900 h-12 rounded-tl-lg rounded-tr-lg">
                             <th onClick={_ => orderTo('COD_TAREFA')} className="rounded-tl-lg cursor-pointer">Número</th>
                             <th className="cursor-pointer" onClick={_ => orderTo('NOME_TAREFA')}>Assunto</th>
+                            <th>Tempo Estimado</th>
+                            <th>Hora Tarefa</th>
                             <th className="cursor-pointer" onClick={_ => orderTo('DTSOL_TAREFA')}>Data</th>
-                            <th className="cursor-pointer" onClick={_ => orderTo('STATUS_TAREFA')}>Status</th>
                             <th>Actions</th>
-                            <th className="w-[130px] rounded-tr-lg">Arquivos</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1013,62 +1168,22 @@ export default function Home() {
                                     {c?.COD_TAREFA?.toLocaleString("pt-br")}
                                 </td>
                                 <td className="text-start  p-2">{c?.NOME_TAREFA}</td>
+                                <td className="text-start  p-2">{/* c?.NOME_TAREFA */}</td>
+                                <td className="text-center  p-2">{c?.HRREAL_TAREFA}h</td>
                                 <td className="text-center  p-2">
                                     {(new Date(c?.DTSOL_TAREFA)).toLocaleString("pt-br").slice(0,10)}
                                 </td>
-                                <td className="text-center  p-2">{c?.STATUS_TAREFA}</td>
                                 <td className="text-center flex flex-row gap-4 sm:gap-2 sm:flex-nowrap flex-wrap  sm:justify-between justify-center  max-w-[130px] p-2">
 
                                     <LuPointer 
-                                        onClick={(e) => {e.stopPropagation()} }
+                                        onClick={(e) => {setModalApontamento(true)} }
                                         title="APONTAMENTO"
                                         style={{ cursor: "pointer" }}
                                         className="text-indigo-900 hover:text-indigo-500"
                                         size={18}
                                     />
 
-                                    {c.STATUS_TAREFA !== "EM ATENDIMENTO" && (
-                                        <VscDebugStart
-                                            onClick={(e) =>  { /* e.stopPropagation(); startCall(c);*/}}
-                                            title="EM ATENDIMENTO"
-                                            style={{ cursor: "pointer" }}
-                                            className="text-green-600 hover:text-green-400"
-                                            size={18}
-                                        />
-                                    )}
-
-                                    {c.STATUS_TAREFA !== "STANDBY" &&
-                                        c.STATUS_TAREFA !== "AGUARDANDO VALIDACAO" &&
-                                        c.STATUS_TAREFA !== "ATRIBUIDO" && (
-                                            <PiPauseDuotone
-                                                title="STANDBY"
-                                                onClick={(e) => { setModalStandby(true) }}
-                                                style={{ cursor: "pointer" }}
-                                                className="text-yellow-500 hover:text-yellow-300"
-                                                size={18}
-                                            />
-                                        )}
-
-                                    {c.STATUS_TAREFA !== "AGUARDANDO VALIDACAO" &&
-                                        c.STATUS_TAREFA !== "ATRIBUIDO" && (
-                                            <ImStop
-                                                onClick={(e) =>  { /* e.stopPropagation(); */changeStatus(c, STATUS_TASK['AGUARDANDO VALIDACAO']);}}
-                                                title="AGUARDANDO VALIDAÇÃO"
-                                                style={{ cursor: "pointer" }}
-                                                className="text-red-700 hover:text-red-500"
-                                                size={18}
-                                            />
-                                        )}
-
-                                    {c.STATUS_TAREFA !== "ATRIBUIDO" && (
-                                        <TbCalendarCheck
-                                            onClick={(e) =>  { /* e.stopPropagation(); */changeStatus(c, STATUS_TASK['FINALIZADO']);}}
-                                            title="FINALIZADO"
-                                            style={{ cursor: "pointer" }}
-                                            className="text-orange-500 hover:text-orange-300"
-                                            size={18}
-                                        />
-                                    )}
+                                    
 
                                     <HiOutlineClipboardDocumentList
                                         onClick={() => openDescriptions(c)}
@@ -1078,7 +1193,6 @@ export default function Home() {
                                         size={18}
                                     />
                                 </td>
-                                <td><a href={"/api/arquivos?codTarefa="+c?.COD_TAREFA} target="_blank">Download</a></td>
                             </tr>
                         ))}
                     </tbody>

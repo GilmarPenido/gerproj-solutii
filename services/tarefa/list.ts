@@ -23,6 +23,7 @@ export default async function ListTaskService(recurso: string): Promise<TaskType
                     DTAPROV_TAREFA,
                     DTPREVENT_TAREFA,
                     HREST_TAREFA,
+                    HRREAL_TAREFA,
                     STATUS_TAREFA,
                     CAST(OBS_TAREFA AS VARCHAR(32000)) AS  OBS_TAREFA
                 FROM 
