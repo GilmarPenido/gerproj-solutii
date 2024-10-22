@@ -99,7 +99,9 @@ export default async function ApointService(
                     })
             })
             
-            NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6) 
+            NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6)
+
+            console.log(COD_OS, NUM_OS)
             
             let success = await new Promise((resolve, reject) => {
                 transaction.query(
@@ -128,7 +130,7 @@ export default async function ApointService(
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                         COD_OS,
-                        os.CODTRF_OS,
+                        os.COD_TAREFA,
                         new Date(`${date} 00:00`).toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
                         startTime.replace(":", ""),
                         endTime.replace(":", ""),
@@ -137,12 +139,12 @@ export default async function ApointService(
                         'SIM',  //PRODUTIVO_OS
                         recurso,
                         'SIM',  //PRODUTIVO2_OS
-                        task[0].RESPCLI_PROJETO, //RESPCLI_OS
+                        os.RESPCLI_PROJETO, //RESPCLI_OS
                         description,
                         'NAO',
                         'NAO',
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
-                        'SIM',  //FATURADO_OS
+                        os.FATURA_TAREFA,  //FATURADO_OS
                         100, //PERC_OS
                         'NAO', //VALID_OS
                         NUM_OS,

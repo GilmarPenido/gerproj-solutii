@@ -16,18 +16,22 @@ export default async function ListTaskService(recurso: string): Promise<TaskType
             // db = DATABASE
             db.query(`
                 SELECT
-                    COD_TAREFA,
-                    NOME_TAREFA,
-                    CODPRO_TAREFA,
-                    DTSOL_TAREFA,
-                    DTAPROV_TAREFA,
-                    DTPREVENT_TAREFA,
-                    HREST_TAREFA,
-                    HRREAL_TAREFA,
-                    STATUS_TAREFA,
-                    CAST(OBS_TAREFA AS VARCHAR(32000)) AS  OBS_TAREFA
+                    PROJETO.RESPCLI_PROJETO,
+                    TAREFA.FATURA_TAREFA,
+                    TAREFA.COD_TAREFA,
+                    TAREFA.NOME_TAREFA,
+                    TAREFA.CODPRO_TAREFA,
+                    TAREFA.DTSOL_TAREFA,
+                    TAREFA.DTAPROV_TAREFA,
+                    TAREFA.DTPREVENT_TAREFA,
+                    TAREFA.HREST_TAREFA,
+                    TAREFA.HRREAL_TAREFA,
+                    TAREFA.STATUS_TAREFA,
+                    CAST(TAREFA.OBS_TAREFA AS VARCHAR(32000)) AS  OBS_TAREFA
                 FROM 
                     TAREFA 
+                        JOIN
+                    PROJETO ON PROJETO.COD_PROJETO = TAREFA.CODPRO_TAREFA
                         WHERE 
                     CODREC_TAREFA = ? 
                         AND 

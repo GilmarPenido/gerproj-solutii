@@ -1,4 +1,5 @@
 export type TaskType = {
+    COD_OS: string
     COD_TAREFA: string
     NOME_TAREFA: string
     CODPRO_TAREFA: string
@@ -8,6 +9,7 @@ export type TaskType = {
     HREST_TAREFA: string
     STATUS_TAREFA: number
     OBS_TAREFA: string
+    RESPCLI_PROJETO: string
 }
 
 

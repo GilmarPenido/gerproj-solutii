@@ -350,6 +350,8 @@ export default function Home() {
 
     async function apontamento(os: TaskType | null) {
 
+        setLoadingOs(true);
+
 
         if(!validCurrentDate(date)) {
             alert("Selecione uma data dentro do período vigente.");
@@ -379,6 +381,7 @@ export default function Home() {
 
      
         if (!os) {
+            console.log(os)
             alert("Selecione um projeto!");
             return;
         }
@@ -424,7 +427,7 @@ export default function Home() {
         let task = await fetch("/api/get-task", {
             method: "POST",
             body: JSON.stringify({
-                COD_CHAMADO: selectedCall?.COD_CHAMADO
+                COD_CHAMADO: os?.COD_OS
             })
         })
             .then((res) => res.json())
@@ -448,9 +451,9 @@ export default function Home() {
 
         if (!result) return;
 
-        getCalls();
-        getAllOs();        
-        setModalStandby(false);
+        getAllOsTarefa();        
+        setModalApontamento(false);
+        setLoadingOs(false);
     }
 
 
@@ -608,14 +611,11 @@ export default function Home() {
         getAllOs();
     }, [selectedCall]);
 
-
     useEffect(() => {
         if (!selectedProj) return;
 
         getAllOsTarefa();
     }, [selectedProj]);
-
-    
 
     useEffect(() => {
         if (!session) return;
@@ -624,7 +624,6 @@ export default function Home() {
         getTasksProject();
         getLimitDate();
     }, [session]);
-
 
     function getLimitDate() {
 
@@ -708,7 +707,6 @@ export default function Home() {
 
         setModalEditOS(true);
     }
-    
 
     async function handleDelete(os: any) {
 
@@ -745,8 +743,11 @@ export default function Home() {
         if (!result) return;
 
         
-        getCalls();
-        getAllOs();
+        if(tab === 'chamado') {
+            getCalls();
+        } else {
+            getAllOsTarefa()
+        }
     }
 
     async function updateOs() {
@@ -793,7 +794,14 @@ export default function Home() {
 
         if (!result) return;
 
-        getCalls();
+
+        if(tab === 'chamado') {
+
+            getCalls();
+        } else {
+            getAllOsTarefa()
+        }
+
 
         setModalEditOS(false);
 
@@ -946,7 +954,7 @@ export default function Home() {
                     isOpen={modalApontamento}
                     setOpenModal={setModalApontamento}
                     title="Apontamento"
-                    action={() => apontamento(selectedOs)}
+                    action={() => apontamento(selectedProj)}
                 >
                     <label>Descrição</label>
                     <textarea
