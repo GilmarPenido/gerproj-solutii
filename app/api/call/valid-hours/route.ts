@@ -14,7 +14,6 @@ async function handler(request: NextRequest) {
 
   try {
     const response = await ValidHoursService(chamado, date, startTime, endTime)
-
     return NextResponse.json(response)
   } catch(error) {
 

@@ -47,7 +47,7 @@ export default function Home() {
     const [tasks, setTasks] = useState([])
     const [descriptionText,setDescriptionText] = useState('')
 
-    const [date, setDate] = useState(new Date().toISOString().substr(0, 10));
+    const [date, setDate] = useState(new Date().toISOString().substring(0, 10));
 
     const [directionOrder, setDirectionOrder] = useState<'asc' | 'desc'>('desc')
     const [selectedDate, setSelectedDate] = useState<string>('')
@@ -513,7 +513,7 @@ export default function Home() {
 
             const confirmacao = await Swal.fire({
                 title: `Horas mês: ${horasTotais}h`,
-                text: `Horas para está tarefa já ultrapassaram o limite do mês, total final após apontamento: ${horasApontadas}h`,
+                text: `Horas para está tarefa já ultrapassaram o limite do mês, total final após apontamento: ${horasApontadas}h. ENTRE EM CONTATO COM A SOLUTII!`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -762,22 +762,15 @@ export default function Home() {
             return;
         }
 
-
         if( hours.initial > hours.final) {
-
             alert("Hora inicial não pode ser maior que a hora final!")
             return;
-
         }
 
         if(description.trim() === "") {
-
             alert("Descrição do chamado é obrigatória!")
             return;
         }
-
-
-
 
         let result = await fetch("/api/os/update", {
             method: "POST",
@@ -810,11 +803,9 @@ export default function Home() {
     }
 
     function validCurrentDate(date: string): boolean {
-
         let selectedDate = new Date(date);
         let tomorrow = (new Date(`${(new Date()).toISOString().split('T')[0]} 00:00`));
         tomorrow.setDate(tomorrow.getDate() + 1)
-        
         return selectedDate >= (limitDate??'') && selectedDate < tomorrow
     }
 

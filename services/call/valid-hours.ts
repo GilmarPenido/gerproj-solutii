@@ -37,17 +37,20 @@ export default async function ValidHoursService(
             })
 
 
-            if (!(parseInt(limmesTarefa) > 0)) {
+            const firstDayOfMonth = `${date.slice(0, 8)}01`;
+            const lastDayOfMonth = new Date(
+                parseInt(date.slice(0, 4)),
+                parseInt(date.slice(5, 7)),
+                0
+            ).toISOString().slice(0, 10);
 
-                return resolve([])
-
-            }
-
+             
+            console.log(`select HRINI_OS, HRFIM_OS from OS where CODTRF_OS =  ${codTarefa}  and dtini_os >= ${firstDayOfMonth} and dtini_os <= ${lastDayOfMonth}`)
 
             let responseHrsTotais: [] = await new Promise((resolve, reject) => {
 
                 db.query(`select HRINI_OS, HRFIM_OS from OS where CODTRF_OS =  ?  and dtini_os >= ? and dtini_os <= ?`,
-                    [codTarefa, date, date], async function (err: any, res: any) {
+                    [codTarefa, firstDayOfMonth, lastDayOfMonth], async function (err: any, res: any) {
                         if (err) {
                             db.detach()
                             return reject(err);
@@ -55,6 +58,8 @@ export default async function ValidHoursService(
                         return resolve(res)
                     })
             })
+
+            console.log("zzz", responseHrsTotais)
 
 
             if (!responseHrsTotais) {
@@ -74,19 +79,18 @@ export default async function ValidHoursService(
 
             }
 
+            let minTotais: number = 0
 
-            var minTotais = responseHrsTotais.reduce((acum, response) => {
-                console.log(acum, getTimeToMinutes(response['HRINI_OS'], response['HRFIM_OS']))
+            console.log(responseHrsTotais)
+
+            minTotais = responseHrsTotais.reduce((acum, response) => {
                 return (acum + getTimeToMinutes(response['HRINI_OS'], response['HRFIM_OS']))
 
             }, getTimeToMinutes(startTime.replaceAll(':', ''), endTime.replaceAll(':', '')))
 
-
-
             let limmesTarefaMin = parseInt(limmesTarefa) * 60
 
             return resolve([limmesTarefaMin, minTotais])
-
 
         } catch (err) {
             db.detach();

@@ -30,8 +30,7 @@ export default async function TaskService(
                             PROJETO ON PROJETO.CODCLI_PROJETO = CHAMADO.COD_CLIENTE
                                 JOIN
                             TAREFA ON TAREFA.CODPRO_TAREFA = PROJETO.COD_PROJETO
-
-                        WHERE CHAMADO.COD_CHAMADO = ? AND TAREFA.EXIBECHAM_TAREFA = 1 AND TAREFA.STATUS_TAREFA = 1`,
+                        WHERE CHAMADO.COD_CHAMADO = ? AND TAREFA.EXIBECHAM_TAREFA = 1 AND TAREFA.STATUS_TAREFA <> 4`,
                     [chamado.COD_CHAMADO], async function (err: any, res: any) {
                         if (err) {
                             db.detach()
