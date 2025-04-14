@@ -4,7 +4,6 @@ import { TaskType } from "@/models/tarefa";
 
 export default async function ListTaskService(recurso: string): Promise<TaskType[]> {
     
-
     return new Promise((resolve, reject) => {
 
         Firebird.attach(options, function (err: any, db: any) {
@@ -39,7 +38,7 @@ export default async function ListTaskService(recurso: string): Promise<TaskType
                         AND
                     EXIBECHAM_TAREFA = ?`
                     ,
-                [recurso, 1, 0], async function (err: any, result: any) {
+                [recurso, 2, 0], async function (err: any, result: any) {
 
                     db.detach();
 
