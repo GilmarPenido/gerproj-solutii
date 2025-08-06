@@ -48,15 +48,6 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
                         return reject(err)
                     }
 
-                    result.map((row) => {
-                        if (Buffer.isBuffer(row.SOLICITACAO_CHAMADO)) {
-                            const texto = row.SOLICITACAO_CHAMADO.toString('utf8'); // ou 'latin1' se for ISO8859_1
-                            row.SOLICITACAO_UTF8 = texto;
-                        } else {
-                            row.SOLICITACAO_UTF8 = row.SOLICITACAO_CHAMADO;
-                        }
-                    } )
-
                     return resolve(result)
                     // IMPORTANT: close the connection
 
