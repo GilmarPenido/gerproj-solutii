@@ -145,7 +145,7 @@ export default async function UpdateCallService(
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
                         'SIM',  //FATURADO_OS
                         100, //PERC_OS
-                        'NAO', //VALID_OS
+                        'SIM', //VALID_OS
                         NUM_OS,
                         chamado.COD_CHAMADO,
                         0,

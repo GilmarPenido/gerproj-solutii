@@ -8,15 +8,12 @@ async function handler(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const codChamado = searchParams.get('codChamado')
   
-
   try {
 
-
-
-    const folderPath = path.resolve(`E:\\GERPROJ\\DOC\\CALLTECH\\${codChamado}`);
+    const folderPath = path.resolve('C:\\GERPROJ\\Dropbox\\DOC\\CALLTECH\\'+codChamado);
 
     if (!fs.existsSync(folderPath)) {
-        return NextResponse.json({ message: 'Chamado sem anexo!' });
+        return NextResponse.json({ message: 'Chamado sem anexo!', caminho: folderPath });
     }
 
     const zip = new AdmZip();

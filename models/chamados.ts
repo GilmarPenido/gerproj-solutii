@@ -15,6 +15,9 @@ export type ChamadosType = {
     EMAIL_CHAMADO: string
     PRIOR_CHAMADO: number
     COD_CLASSIFICACAO: number
+    NOME_CLIENTE: string
+    SOLICITACAO_UTF8?: string
+    ACESSO_CLIENTE?: string
 }
 
 export type ChamadoLimitType = {

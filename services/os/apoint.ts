@@ -146,7 +146,7 @@ export default async function ApointService(
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
                         os.FATURA_TAREFA,  //FATURADO_OS
                         100, //PERC_OS
-                        'NAO', //VALID_OS
+                        'SIM', //VALID_OS
                         NUM_OS,
                         0,
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit'})

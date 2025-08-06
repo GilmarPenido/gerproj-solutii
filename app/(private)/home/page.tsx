@@ -24,6 +24,7 @@ export default function Home() {
     const [tab, setTab] = useState<"chamado" | "os">("chamado");
     const [projes, setProjes] = useState<TaskType[]>([]);
     const [isOpenModal, setOpenModal] = useState(false);
+    const [isOpenModal2, setOpenModal2] = useState(false);
     const [description, setDescription] = useState("");
     const [selectedCall, setSelectedCall] = useState<ChamadosType | null>(null);
     const [selectedOs, setSelectedOs] = useState<any | null>(null);
@@ -506,7 +507,7 @@ export default function Home() {
         .then((res) => res);
 
 
-        if(responseValidHours && responseValidHours[0] < responseValidHours[1]) {
+        if(responseValidHours && responseValidHours[0]>0 && responseValidHours[0] < responseValidHours[1]) {
 
             let horasTotais =  responseValidHours[0] / 60
             let horasApontadas = responseValidHours[1] / 60
@@ -564,8 +565,14 @@ export default function Home() {
         let desc = chamado.SOLICITACAO_CHAMADO.trim();
         desc = desc.substring(1, desc.length - 1);
 
-        setDescription(chamado.SOLICITACAO2_CHAMADO);
+        setDescription(desc);
         setOpenModal(true);
+    }
+
+    function openAccess(chamado: ChamadosType) {
+        let desc = chamado?.ACESSO_CLIENTE?.trim();
+        setDescription(desc??'Acesso não informado!');
+        setOpenModal2(true);
     }
 
     async function updateChamadoTarefa() {
@@ -824,6 +831,20 @@ export default function Home() {
                 </Modal>
             }
 
+            {isOpenModal2 && 
+                <Modal
+                    isOpen={isOpenModal2}
+                    setOpenModal={setOpenModal2}
+                    title="Descrição"
+                >
+                    <p
+                        className="my-4 text-blueGray-500 text-lg leading-relaxed"
+                    >
+                        {description}
+                    </p>
+                </Modal>
+            }
+
             {modalTarefa &&
                 <Modal 
                     isOpen={modalTarefa}
@@ -1047,8 +1068,9 @@ export default function Home() {
                         <tr className="text-cyan-100 bg-cyan-900 h-12 rounded-tl-lg rounded-tr-lg">
                             <th onClick={_ => orderTo('COD_CHAMADO')} className="rounded-tl-lg cursor-pointer">Número</th>
                             <th className="cursor-pointer" onClick={_ => orderTo('ASSUNTO_CHAMADO')}>Assunto</th>
-                            <th className="cursor-pointer" onClick={_ => orderTo('DTENVIO_CHAMADO')}>Data</th>
-                            <th className="cursor-pointer" onClick={_ => orderTo('STATUS_CHAMADO')}>Status</th>
+                            <th>E-mail</th>
+			    <th className="cursor-pointer" onClick={_ => orderTo('DTENVIO_CHAMADO')}>Data</th>                            
+			    <th className="cursor-pointer" onClick={_ => orderTo('STATUS_CHAMADO')}>Status</th>
                             <th>Actions</th>
                             <th className="w-[130px] rounded-tr-lg">Arquivos</th>
                         </tr>
@@ -1068,7 +1090,8 @@ export default function Home() {
                                     {c?.COD_CHAMADO?.toLocaleString("pt-br")}
                                 </td>
                                 <td className="text-start  p-2">{c?.ASSUNTO_CHAMADO}</td>
-                                <td className="text-center  p-2">
+                                <td className="text-start  p-2">{c?.EMAIL_CHAMADO}</td>
+				<td className="text-center  p-2">
                                     {c?.DTENVIO_CHAMADO?.replace("-", " ")}
                                 </td>
                                 <td className="text-center  p-2">{c?.STATUS_CHAMADO}</td>
@@ -1127,6 +1150,14 @@ export default function Home() {
                                     <HiOutlineClipboardDocumentList
                                         onClick={() => openDescriptions(c)}
                                         title="Detalhamento"
+                                        style={{ cursor: "pointer" }}
+                                        className="text-fuchsia-700 hover:text-fuchsia-500"
+                                        size={18}
+                                    />
+
+                                    <HiOutlineClipboardDocumentList
+                                        onClick={() => openAccess(c)}
+                                        title="Acesso Cliente"
                                         style={{ cursor: "pointer" }}
                                         className="text-fuchsia-700 hover:text-fuchsia-500"
                                         size={18}

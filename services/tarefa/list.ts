@@ -26,19 +26,21 @@ export default async function ListTaskService(recurso: string): Promise<TaskType
                     TAREFA.HREST_TAREFA,
                     TAREFA.HRREAL_TAREFA,
                     TAREFA.STATUS_TAREFA,
-                    CAST(TAREFA.OBS_TAREFA AS VARCHAR(32000)) AS  OBS_TAREFA
+                    CAST(TAREFA.OBS_TAREFA AS VARCHAR(32000)) AS  OBS_TAREFA,
+                    CAST(CLIENTE.ACESSO_CLIENTE AS VARCHAR(32000)) AS ACESSO_CLIENTE,
+                    CLIENTE.NOME_CLIENTE
                 FROM 
                     TAREFA 
                         JOIN
                     PROJETO ON PROJETO.COD_PROJETO = TAREFA.CODPRO_TAREFA
+                        INNER JOIN
+                    CLIENTE ON CLIENTE.COD_CLIENTE = PROJETO.CODCLI_PROJETO
                         WHERE 
                     CODREC_TAREFA = ? 
                         AND 
-                    STATUS_TAREFA = ?
-                        AND
-                    EXIBECHAM_TAREFA = ?`
+                    STATUS_TAREFA IN (?, ?, ?)`
                     ,
-                [recurso, 2, 0], async function (err: any, result: any) {
+                [recurso, 3, 2, 1], async function (err: any, result: any) {
 
                     db.detach();
 

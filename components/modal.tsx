@@ -18,11 +18,11 @@ export default function Modal({ children, isOpen, setOpenModal, title, action}: 
       {showModal ? (
         <>
           <div
-            className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+            className="justify-center items-center flex fixed inset-0 z-50 outline-none focus:outline-none"
           >
             <div className="relative w-full">
               {/*content*/}
-              <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none w-[90%] sm:w-[640px] mx-auto">
+              <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none w-[90%] max-w-[1200px] mx-auto">
                 {/*header*/}
                 <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t text-center">
                   <h3 className="text-3xl font-semibold">
@@ -38,7 +38,7 @@ export default function Modal({ children, isOpen, setOpenModal, title, action}: 
                   </button>
                 </div>
                 {/*body*/}
-                <div className="relative p-6 flex-auto">
+                <div className="relative p-6 flex-auto max-h-[60vh] overflow-y-auto">
                   { children }
                 </div>
                 {/*footer*/}

@@ -22,11 +22,20 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
                     HORA_CHAMADO,
                     STATUS_CHAMADO,
                     CODTRF_CHAMADO,
+		            EMAIL_CHAMADO,
                     COD_RECURSO,
-                    CAST(SOLICITACAO2_CHAMADO AS VARCHAR(32000)) AS  SOLICITACAO2_CHAMADO,
-                    CAST(SOLICITACAO_CHAMADO AS VARCHAR(32000))  AS SOLICITACAO_CHAMADO
+                    CAST(SOLICITACAO_CHAMADO AS VARCHAR(32000))  AS SOLICITACAO_CHAMADO,
+                    CAST(CLIENTE.ACESSO_CLIENTE AS VARCHAR(32000)) AS  ACESSO_CLIENTE,
+                    CLIENTE.NOME_CLIENTE
+                    
                 FROM 
-                    CHAMADO 
+                    CHAMADO
+                        INNER JOIN
+                    TAREFA ON CHAMADO.CODTRF_CHAMADO = TAREFA.COD_TAREFA
+                        INNER JOIN
+                    PROJETO ON PROJETO.COD_PROJETO = TAREFA.CODPRO_TAREFA
+                        INNER JOIN
+                    CLIENTE ON CLIENTE.COD_CLIENTE = PROJETO.CODCLI_PROJETO
                         WHERE 
                     COD_RECURSO = ? 
                         AND 
@@ -38,6 +47,16 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
                     if (err) {
                         return reject(err)
                     }
+
+                    result.map((row) => {
+                        if (Buffer.isBuffer(row.SOLICITACAO_CHAMADO)) {
+                            const texto = row.SOLICITACAO_CHAMADO.toString('utf8'); // ou 'latin1' se for ISO8859_1
+                            row.SOLICITACAO_UTF8 = texto;
+                        } else {
+                            row.SOLICITACAO_UTF8 = row.SOLICITACAO_CHAMADO;
+                        }
+                    } )
+
                     return resolve(result)
                     // IMPORTANT: close the connection
 
