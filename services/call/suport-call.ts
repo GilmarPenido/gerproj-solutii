@@ -31,13 +31,9 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
                 FROM 
                     CHAMADO
                         INNER JOIN
-                    TAREFA ON CHAMADO.CODTRF_CHAMADO = TAREFA.COD_TAREFA
-                        INNER JOIN
-                    PROJETO ON PROJETO.COD_PROJETO = TAREFA.CODPRO_TAREFA
-                        INNER JOIN
-                    CLIENTE ON CLIENTE.COD_CLIENTE = PROJETO.CODCLI_PROJETO
+                    CLIENTE ON CLIENTE.COD_CLIENTE = CHAMADO.cod_cliente
                         WHERE 
-                    COD_RECURSO = ? 
+                    CHAMADO.COD_RECURSO = ? 
                         AND 
                     STATUS_CHAMADO <> ?`,
                 [recurso, 'FINALIZADO'], async function (err: any, result: any) {
@@ -55,7 +51,4 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
 
         });
     })
-
-
-
 }
