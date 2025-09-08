@@ -1,340 +1,265 @@
 import { ChamadoLimitType, ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
-import   iconv from 'iconv-lite';
+import iconv from "iconv-lite";
 
 export default (function OsService() {
 
-    function list(chamado: string,  recurso: string, data: string): Promise<ChamadosType[]> {
+    // Função auxiliar para ler BLOB TEXT
+    const readBlob = (blobFn: any): Promise<string> => {
         return new Promise((resolve, reject) => {
+            if (!blobFn || typeof blobFn !== "function") return resolve("");
 
-            Firebird.attach(options, function (err: any, db: any) {
+            blobFn((err: any, name: any, stream: any) => {
+                if (err) return reject(err);
+                if (!stream) return resolve("");
 
-                if (err) {
-                    return reject(err)
-                }
-
-                // db = DATABASE
-                db.query(`
-                    SELECT
-                    OS.OBS,
-                    OS.COD_OS,
-                    OS.DTINI_OS,
-                    OS.HRINI_OS,
-                    OS.HRFIM_OS,
-                    CLIENTE.NOME_CLIENTE
-                        FROM OS
-                        LEFT JOIN CHAMADO ON (OS.chamado_os = CHAMADO.cod_chamado)
-                        LEFT JOIN TAREFA ON (TAREFA.cod_tarefa = OS.codtrf_os)
-                        LEFT JOIN PROJETO ON (PROJETO.cod_projeto = TAREFA.codpro_tarefa)
-                        LEFT JOIN CLIENTE ON (CLIENTE.cod_cliente = PROJETO.codcli_projeto)
-                        
-                    where 
-                        ${data ? 'DTINI_OS' : 'CHAMADO_OS'} = ? 
-                            AND
-                        CODREC_OS = ? `,
-                    [data ? data : chamado, recurso], async function (err: any, result: any) {
-
-                       
-                        if (err) {
-                            console.log(err)
-                            db.detach();
-                            return reject(err)
-                        }
-
-                        const resultParseBlob: any = []
-
-                        const length = result.length
-
-
-                        for(let i = 0; i < length; i++) {
-
-
-                            const blob = result[i].OBS;
-                            blob(function(err: any, name: any, stream: any) {
-                                if (err) {
-                                    console.error('Erro ao ler o BLOB:', err);
-                                    db.detach();
-                                    return;
-                                }
-                    
-                                let chunks: any = [];
-                    
-                                stream.on('data', function(chunk: any) {
-                                    chunks.push(chunk);
-                                });
-                    
-                                stream.on('end', function() {
-                                    // Converter o buffer para string
-                                    const buffer = Buffer.concat(chunks);
-                                    const blobText = iconv.decode(buffer, 'ISO-8859-1');
-                                    result[i].OBS = blobText
-                                    resultParseBlob[i] = result[i]
-                                    
-
-                                    if(i+1 === length) {
-                                        resolve(resultParseBlob)
-                                    }
-                                });
-                            });
-                        }
-                        
-
-
-
-                        if(!result.length) {
-
-                            // Fechar a conexão com o banco de dados
-                            db.detach();
-                            return resolve(result)
-                            // IMPORTANT: close the connection
-                        }
-                        
-                        
-
-
-                    });
-
+                let data = "";
+                stream.on("data", (chunk: Buffer) => {
+                    data += chunk.toString("latin1"); // Corrige acentos
+                });
+                stream.on("end", () => {
+                    resolve(Buffer.from(data, "latin1").toString("utf8")); // Converte para UTF-8
+                });
+                stream.on("error", reject);
             });
-        })
+        });
+    };
+
+    // Função interna genérica para processar BLOBs em paralelo
+    const processBlobs = async (rows: any[], blobField: string) => {
+        await Promise.all(
+            rows.map(async (row) => {
+                if (typeof row[blobField] === "function") {
+                    row[blobField] = await readBlob(row[blobField]);
+                }
+            })
+        );
+    };
+
+    function list(chamado: string, recurso: string, data: string): Promise<ChamadosType[]> {
+        return new Promise((resolve, reject) => {
+            Firebird.attach(options, async (err: any, db: any) => {
+                if (err) return reject(err);
+
+                db.query(
+                    `
+                    SELECT
+                        OS.OBS,
+                        OS.COD_OS,
+                        OS.DTINI_OS,
+                        OS.HRINI_OS,
+                        OS.HRFIM_OS,
+                        CLIENTE.NOME_CLIENTE
+                    FROM OS
+                    LEFT JOIN CHAMADO ON (OS.chamado_os = CHAMADO.cod_chamado)
+                    LEFT JOIN TAREFA ON (TAREFA.cod_tarefa = OS.codtrf_os)
+                    LEFT JOIN PROJETO ON (PROJETO.cod_projeto = TAREFA.codpro_tarefa)
+                    LEFT JOIN CLIENTE ON (CLIENTE.cod_cliente = PROJETO.codcli_projeto)
+                    WHERE ${data ? "DTINI_OS" : "CHAMADO_OS"} = ? 
+                        AND CODREC_OS = ?
+                    `,
+                    [data ? data : chamado, recurso],
+                    async (err: any, result: any) => {
+                        if (err) {
+                            db.detach();
+                            return reject(err);
+                        }
+
+                        if (!result.length) {
+                            db.detach();
+                            return resolve([]);
+                        }
+
+                        try {
+                            await processBlobs(result, "OBS");
+
+                            // Se houver campos VARCHAR/CHAR que precisem de LATIN1 → UTF-8
+                            for (const row of result) {
+                                if (row.NOME_CLIENTE) {
+                                    row.NOME_CLIENTE = Buffer.from(row.NOME_CLIENTE, "latin1").toString("utf8");
+                                }
+                            }
+
+                            db.detach();
+                            resolve(result);
+                        } catch (e) {
+                            db.detach();
+                            reject(e);
+                        }
+                    }
+                );
+            });
+        });
     }
 
-
-    function listOsTarefa(tarefa: string,  recurso: string, data: string): Promise<ChamadosType[]> {
+    function listOsTarefa(tarefa: string, recurso: string, data: string): Promise<ChamadosType[]> {
         return new Promise((resolve, reject) => {
+            Firebird.attach(options, async (err: any, db: any) => {
+                if (err) return reject(err);
 
-            Firebird.attach(options, function (err: any, db: any) {
-
-                if (err) {
-                    return reject(err)
-                }
-
-                // db = DATABASE
-                db.query(`
+                db.query(
+                    `
                     SELECT
-                    OS.OBS,
-                    OS.COD_OS,
-                    OS.DTINI_OS,
-                    OS.HRINI_OS,
-                    OS.HRFIM_OS,
-                    CLIENTE.NOME_CLIENTE
-                        FROM OS
-                        LEFT JOIN CHAMADO ON (OS.chamado_os = CHAMADO.cod_chamado)
-                        LEFT JOIN TAREFA ON (TAREFA.cod_tarefa = OS.codtrf_os)
-                        LEFT JOIN PROJETO ON (PROJETO.cod_projeto = TAREFA.codpro_tarefa)
-                        LEFT JOIN CLIENTE ON (CLIENTE.cod_cliente = PROJETO.codcli_projeto)
-                        
-                    where 
-                        ${data ? 'DTINI_OS' : 'CODTRF_OS'} = ? 
-                            AND
-                        CODREC_OS = ? `,
-                    [data ? data : tarefa, recurso], async function (err: any, result: any) {
-
-                       
+                        OS.OBS,
+                        OS.COD_OS,
+                        OS.DTINI_OS,
+                        OS.HRINI_OS,
+                        OS.HRFIM_OS,
+                        CLIENTE.NOME_CLIENTE
+                    FROM OS
+                    LEFT JOIN CHAMADO ON (OS.chamado_os = CHAMADO.cod_chamado)
+                    LEFT JOIN TAREFA ON (TAREFA.cod_tarefa = OS.codtrf_os)
+                    LEFT JOIN PROJETO ON (PROJETO.cod_projeto = TAREFA.codpro_tarefa)
+                    LEFT JOIN CLIENTE ON (CLIENTE.cod_cliente = PROJETO.codcli_projeto)
+                    WHERE ${data ? "DTINI_OS" : "CODTRF_OS"} = ? 
+                        AND CODREC_OS = ?
+                    `,
+                    [data ? data : tarefa, recurso],
+                    async (err: any, result: any) => {
                         if (err) {
-                            console.log(err)
                             db.detach();
-                            return reject(err)
+                            return reject(err);
                         }
 
-                        const resultParseBlob: any = []
+                        if (!result.length) {
+                            db.detach();
+                            return resolve([]);
+                        }
 
-                        const length = result.length
+                        try {
+                            await processBlobs(result, "OBS");
 
-
-                        for(let i = 0; i < length; i++) {
-
-
-                            const blob = result[i].OBS;
-                            blob(function(err: any, name: any, stream: any) {
-                                if (err) {
-                                    console.error('Erro ao ler o BLOB:', err);
-                                    db.detach();
-                                    return;
+                            for (const row of result) {
+                                if (row.NOME_CLIENTE) {
+                                    row.NOME_CLIENTE = Buffer.from(row.NOME_CLIENTE, "latin1").toString("utf8");
                                 }
-                    
-                                let chunks: any = [];
-                    
-                                stream.on('data', function(chunk: any) {
-                                    chunks.push(chunk);
-                                });
-                    
-                                stream.on('end', function() {
-                                    // Converter o buffer para string
-                                    const buffer = Buffer.concat(chunks);
-                                    const blobText = iconv.decode(buffer, 'ISO-8859-1');
-                                    result[i].OBS = blobText
-                                    resultParseBlob[i] = result[i]
-                                    
+                            }
 
-                                    if(i+1 === length) {
-                                        resolve(resultParseBlob)
-                                    }
-                                });
-                            });
-                        }
-                        
-
-
-
-                        if(!result.length) {
-
-                            // Fechar a conexão com o banco de dados
                             db.detach();
-                            return resolve(result)
-                            // IMPORTANT: close the connection
+                            resolve(result);
+                        } catch (e) {
+                            db.detach();
+                            reject(e);
                         }
-                        
-                        
-
-
-                    });
-
+                    }
+                );
             });
-        })
+        });
     }
 
     function details(chamado: string, recurso: string): Promise<ChamadoLimitType[]> {
         return new Promise((resolve, reject) => {
+            Firebird.attach(options, (err: any, db: any) => {
+                if (err) return reject(err);
 
-            Firebird.attach(options, function (err: any, db: any) {
-
-                if (err) {
-                    return reject(err)
-                }
-
-                // db = DATABASE
-                db.query(`
+                db.query(
+                    `
                     SELECT C.cod_chamado, O.cod_os, T.cod_tarefa, T.limmes_tarefa 
-                        FROM
-                    CHAMADO C
-                        JOIN
-                    OS O on O.chamado_os = C.cod_chamado and C.cod_chamado = ?
-                        JOIN
-                    TAREFA T on T.cod_tarefa = O.codtrf_os
-                        WHERE
-                    O.cod_recurso = ?
-                    
+                    FROM CHAMADO C
+                    JOIN OS O ON O.chamado_os = C.cod_chamado AND C.cod_chamado = ?
+                    JOIN TAREFA T ON T.cod_tarefa = O.codtrf_os
+                    WHERE O.cod_recurso = ?
                     `,
-                    [chamado, recurso], async function (err: any, result: any) {
-
+                    [chamado, recurso],
+                    (err: any, result: any) => {
                         db.detach();
-
-                        if (err) {
-                            console.log(err)
-                            return reject(err)
-                        }
-
-                        return resolve(result)
-                        // IMPORTANT: close the connection
-
-                    });
-
+                        if (err) return reject(err);
+                        resolve(result);
+                    }
+                );
             });
-        })
+        });
     }
 
-    function insert(codChamado: string): Promise<any> {
-        return new Promise(async (resolve, reject) => {
+    async function insert(codChamado: string): Promise<any> {
+        let db: any = null;
+        try {
+            db = await new Promise((resolve, reject) => {
+                Firebird.attach(options, (err: any, db: any) => {
+                    if (err) return reject(err);
+                    resolve(db);
+                });
+            });
 
-            let db: any = null
+            const newID: number = await new Promise((resolve, reject) => {
+                db.query(`SELECT MAX(COD_HISTCHAMADO) + 1 as ID FROM HISTCHAMADO`, [], (err: any, res: any) => {
+                    if (err) return reject(err);
+                    resolve(res[0]["ID"]);
+                });
+            });
 
-            try {
+            const transaction: any = await new Promise((resolve, reject) => {
+                db.transaction(Firebird.ISOLATION_READ_COMMITTED, (err: any, transaction: any) => {
+                    if (err) return reject(err);
+                    resolve(transaction);
+                });
+            });
 
-                db = await new Promise((resolve, reject) => {
-                    Firebird.attach(options, (err: any, db: any) => {
+            await new Promise((resolve, reject) => {
+                transaction.query(
+                    `UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
+                    [STATUS_CHAMADO["EM ATENDIMENTO"], codChamado, STATUS_CHAMADO.FINALIZADO],
+                    (err: any) => {
                         if (err) {
-                            return reject(err)
+                            transaction.rollback();
+                            return reject(err);
                         }
-                        return resolve(db)
-                    })
-                })
+                        resolve(true);
+                    }
+                );
+            });
 
-                const newID: number = await new Promise((resolve, reject) => {
-
-                    db.query(`SELECT MAX(COD_HISTCHAMADO) + 1 as ID FROM HISTCHAMADO`,
-                        [], async function (err: any, res: any) {
-                            if (err) {
-                                db.detach()
-                                return reject(err);
-                            }
-                            return resolve(res[0]['ID'])
-                        })
-                })
-
-
-                const transaction: any = await new Promise((resolve, reject) => {
-                    db.transaction(Firebird.ISOLATION_READ_COMMITTED, (err: any, transaction: any) => {
+            await new Promise((resolve, reject) => {
+                transaction.query(
+                    `INSERT INTO HISTCHAMADO (COD_HISTCHAMADO, COD_CHAMADO, DATA_HISTCHAMADO, HORA_HISTCHAMADO, DESC_HISTCHAMADO) VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        newID,
+                        codChamado,
+                        new Date()
+                            .toLocaleString("pt-br", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })
+                            .replaceAll("/", ".")
+                            .replaceAll(",", ""),
+                        new Date().toLocaleString("pt-br", { hour: "2-digit", minute: "2-digit" }).replaceAll(":", ""),
+                        STATUS_CHAMADO["EM ATENDIMENTO"],
+                    ],
+                    (err: any) => {
                         if (err) {
-                            db.detach()
-                            return reject(err)
+                            transaction.rollback();
+                            return reject(err);
                         }
-                        return resolve(transaction)
-                    })
-                })
+                        resolve(true);
+                    }
+                );
+            });
 
-
-                await new Promise((resolve, reject) => {
-
-                    transaction.query(`
-                        UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
-                        [STATUS_CHAMADO["EM ATENDIMENTO"], codChamado, STATUS_CHAMADO.FINALIZADO], async function (err: any, result: any) {
-                            if (err) {
-                                db.detach()
-                                transaction.rollback();
-                                return reject(err)
-                            }
-
-                            return resolve(true)
-                        });
-
-                })
-
-                await new Promise((resolve, reject) => {
-                    transaction.query(`INSERT INTO HISTCHAMADO (COD_HISTCHAMADO, COD_CHAMADO, DATA_HISTCHAMADO, HORA_HISTCHAMADO, DESC_HISTCHAMADO) VALUES (?, ?, ?, ?, ?)`,
-                        [
-                            newID,
-                            codChamado,
-                            new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
-                            new Date().toLocaleString('pt-br', { hour: '2-digit', minute: '2-digit' }).replaceAll(':', ''),
-                            STATUS_CHAMADO["EM ATENDIMENTO"]
-                        ], async function (err: any, result: any) {
-
-                            if (err) {
-                                transaction.rollback();
-                                db.detach()
-                                return reject(err)
-                            }
-
-                            return resolve(true)
-
-
-                        });
-                })
-
-                transaction.commit((err: Error) => {
+            await new Promise((resolve, reject) => {
+                transaction.commit((err: any) => {
                     if (err) {
                         transaction.rollback();
-                        return reject(err)
+                        return reject(err);
                     }
-                    else {
-                        db.detach();
-                        return resolve(true)
-                    }
-
+                    resolve(true);
                 });
+            });
 
-
-            } catch (err) {
-                db.detach();
-                return reject(err)
-            }
+            db.detach();
+            return true;
+        } catch (err) {
+            if (db) db.detach();
+            throw err;
         }
-    
-        )}
-    
+    }
+
     return {
-            list, insert, listOsTarefa
-        }
-
-
-    }) ()
+        list,
+        listOsTarefa,
+        details,
+        insert,
+    };
+})();

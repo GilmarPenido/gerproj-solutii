@@ -16,6 +16,7 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
             HORA_CHAMADO,
             STATUS_CHAMADO,
             CODTRF_CHAMADO,
+            COD_CLASSIFICACAO,
             EMAIL_CHAMADO,
             COD_RECURSO,
             SOLICITACAO_CHAMADO,    -- BLOB TEXT
@@ -55,6 +56,7 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
             // ⚡ Lê todos os BLOBs em paralelo
             await Promise.all(
               result.map(async (row: any) => {
+
                 const blobs: Promise<void>[] = [];
 
                 if (typeof row.SOLICITACAO_CHAMADO === "function") {

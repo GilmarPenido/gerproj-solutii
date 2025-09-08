@@ -32,6 +32,7 @@ export default function Home() {
    
     const [modalStandby, setModalStandby] = useState(false);
     const [modalApontamento, setModalApontamento] = useState(false);
+    const [modalClassificacao, setModalClassificacao] = useState(false);
     
     const [modalTarefa, setModalTarefa] = useState(false);
     const [modalEditOS, setModalEditOS] = useState(false);
@@ -44,8 +45,10 @@ export default function Home() {
     });
 
     const [selectedTask, setSelectedTask] = useState<any>(null);
+    const [selectedClassificacao, setSelectedClassificacao] = useState<any>(null);
 
     const [tasks, setTasks] = useState([])
+    const [classificacao, setClassificacao] = useState([])
     const [descriptionText,setDescriptionText] = useState('')
 
     const [date, setDate] = useState(new Date().toISOString().substring(0, 10));
@@ -307,6 +310,21 @@ export default function Home() {
             return;
         }
 
+        console.log("passou por aqui")
+
+        if(status != "START" && (chamado.COD_CLASSIFICACAO === null || chamado.COD_CLASSIFICACAO === 0)) {
+
+            let selectedClassificacao: any = await fetch("/api/call/classificacao", {
+                method: "POST",
+                body: JSON.stringify( { chamado } )
+            }).then(response => response.json())
+
+            setModalClassificacao(true);
+            setSelectedClassificacao(null);
+            setClassificacao(selectedClassificacao);
+            return;
+        }
+
 
         let result = await fetch(
             "/api/call/change-status?codChamado=" + chamado.COD_CHAMADO + "&status=" + status
@@ -372,7 +390,7 @@ export default function Home() {
 
         }
 
-        if(description.trim() === "") {
+        if(description?.trim() === "") {
 
             console.log(description)
 
@@ -479,9 +497,7 @@ export default function Home() {
 
         }
 
-        if(description.trim() === "") {
-
-            console.log(description)
+        if(description?.trim() === "") {
 
             alert("Descrição do chamado é obrigatória!")
             return;
@@ -562,10 +578,10 @@ export default function Home() {
     }
 
     function openDescriptions(chamado: ChamadosType) {
-        let desc = chamado.SOLICITACAO_CHAMADO.trim();
-        desc = desc.substring(1, desc.length - 1);
+        let desc = chamado?.SOLICITACAO_CHAMADO?.trim();
+        desc = desc?.substring(1, desc.length - 1);
 
-        setDescription(desc);
+        setDescription(desc??"");
         setOpenModal(true);
     }
 
@@ -607,6 +623,42 @@ export default function Home() {
 
 
         setModalTarefa(false);
+
+        setLoadingOs(false);
+
+    }
+
+    async function updateClassificacao() {
+        setLoadingOs(true);
+
+        if(!selectedClassificacao) {
+            alert("Selecione uma classificação!")
+            return;
+        }
+
+
+        let result = await fetch("/api/insert-classificacao", {
+            method: "POST",
+            body: JSON.stringify({
+                COD_CHAMADO: selectedCall?.COD_CHAMADO,
+                COD_CLASSIFICACAO: selectedClassificacao
+            })
+        })
+            .then((res) => res.json())
+            .then((res) => res);
+
+        if (!result) return;
+
+        if(selectedCall) {
+            let call = {
+                ...selectedCall,
+                CODTRF_CHAMADO: selectedTask
+            }
+            await startCall(call)
+        }
+
+
+        setModalClassificacao(false);
 
         setLoadingOs(false);
 
@@ -774,7 +826,7 @@ export default function Home() {
             return;
         }
 
-        if(description.trim() === "") {
+        if(description?.trim() === "") {
             alert("Descrição do chamado é obrigatória!")
             return;
         }
@@ -857,6 +909,25 @@ export default function Home() {
                         {   
                             tasks.map((task: any, index) => (
                                 <option key={index} value={task.COD_TAREFA}>{task.NOME_TAREFA}</option>
+                            ))
+                        }
+                    </select>
+
+                </Modal>
+            }
+
+            {modalClassificacao &&
+                <Modal 
+                    isOpen={modalClassificacao}
+                    setOpenModal={setModalClassificacao}
+                    title="Selecione a Classificação do chamado!"
+                    action={updateClassificacao}
+                >
+                    <select title="classificacao" name="classificacao" id="classificacao" onChange={(event) => setSelectedClassificacao( event.target.value)}>
+                        <option value="">Selecione uma Classificação</option>
+                        {   
+                            classificacao.map((cls: any, index) => (
+                                <option key={index} value={cls.COD_CLASSIFICACAO}>{cls.NOME_CLASSIFICACAO}</option>
                             ))
                         }
                     </select>

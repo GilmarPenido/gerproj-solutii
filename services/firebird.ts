@@ -6,7 +6,7 @@ var options = {
     user:  'SYSDBA',
     password: 'masterkey',
     pageSize: 4096,
-    charset: 'UTF8'
+    charset: 'latin1',
 };
 
 export  { Firebird, options }  
