@@ -1248,7 +1248,7 @@ export default function Home() {
                         <tr className="text-cyan-100 bg-cyan-900 h-12 rounded-tl-lg rounded-tr-lg">
                             <th onClick={_ => orderTo('COD_TAREFA')} className="rounded-tl-lg cursor-pointer">Número</th>
                             <th className="cursor-pointer" onClick={_ => orderTo('NOME_TAREFA')}>Assunto</th>
-                            <th>Tempo Estimado</th>
+                            <th>Cliente</th>
                             <th>Hora Tarefa</th>
                             <th className="cursor-pointer" onClick={_ => orderTo('DTSOL_TAREFA')}>Data</th>
                             <th>Actions</th>
@@ -1269,7 +1269,7 @@ export default function Home() {
                                     {c?.COD_TAREFA?.toLocaleString("pt-br")}
                                 </td>
                                 <td className="text-start  p-2">{c?.NOME_TAREFA}</td>
-                                <td className="text-start  p-2">{/* c?.NOME_TAREFA */}</td>
+                                <td className="text-start  p-2">{c?.NOME_CLIENTE}</td>
                                 <td className="text-center  p-2">{c?.HRREAL_TAREFA}h</td>
                                 <td className="text-center  p-2">
                                     {(new Date(c?.DTSOL_TAREFA)).toLocaleString("pt-br").slice(0,10)}
