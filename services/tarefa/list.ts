@@ -68,20 +68,20 @@ export default async function ListTaskService(recurso: string): Promise<TaskType
                                 if (typeof row.OBS_TAREFA === "function") {
                                     row.OBS_TAREFA = await readBlob(row.OBS_TAREFA);
                                 } else if (row.OBS_TAREFA) {
-                                    row.OBS_TAREFA = Buffer.from(row.OBS_TAREFA, "latin1").toString("utf8");
+                                    row.OBS_TAREFA = row.OBS_TAREFA;
                                 }
 
                                 if (typeof row.ACESSO_CLIENTE === "function") {
                                     row.ACESSO_CLIENTE = await readBlob(row.ACESSO_CLIENTE);
                                 } else if (row.ACESSO_CLIENTE) {
-                                    row.ACESSO_CLIENTE = Buffer.from(row.ACESSO_CLIENTE, "latin1").toString("utf8");
+                                    row.ACESSO_CLIENTE = row.ACESSO_CLIENTE;
                                 }
 
                                 // Converter campos VARCHAR/CHAR para UTF-8
-                                row.NOME_CLIENTE = row.NOME_CLIENTE ? Buffer.from(row.NOME_CLIENTE, "latin1").toString("utf8").trim() : "";
-                                row.NOME_TAREFA = row.NOME_TAREFA ? Buffer.from(row.NOME_TAREFA, "latin1").toString("utf8").trim() : "";
-                                row.FATURA_TAREFA = row.FATURA_TAREFA ? Buffer.from(row.FATURA_TAREFA, "latin1").toString("utf8").trim() : "";
-                                row.RESPCLI_PROJETO = row.RESPCLI_PROJETO ? Buffer.from(row.RESPCLI_PROJETO, "latin1").toString("utf8").trim() : "";
+                                row.NOME_CLIENTE = row.NOME_CLIENTE ? row.NOME_CLIENTE.trim() : "";
+                                row.NOME_TAREFA = row.NOME_TAREFA ? row.NOME_TAREFA.trim() : "";
+                                row.FATURA_TAREFA = row.FATURA_TAREFA ? row.FATURA_TAREFA.trim() : "";
+                                row.RESPCLI_PROJETO = row.RESPCLI_PROJETO ? row.RESPCLI_PROJETO.trim() : "";
                             })
                         );
 

@@ -1,6 +1,5 @@
 import { ChamadoLimitType, ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
-import iconv from "iconv-lite";
 
 export default (function OsService() {
 
@@ -18,7 +17,7 @@ export default (function OsService() {
                     data += chunk.toString("latin1"); // Corrige acentos
                 });
                 stream.on("end", () => {
-                    resolve(Buffer.from(data, "latin1").toString("utf8")); // Converte para UTF-8
+                    resolve(data); // Converte para UTF-8
                 });
                 stream.on("error", reject);
             });
@@ -76,7 +75,7 @@ export default (function OsService() {
                             // Se houver campos VARCHAR/CHAR que precisem de LATIN1 → UTF-8
                             for (const row of result) {
                                 if (row.NOME_CLIENTE) {
-                                    row.NOME_CLIENTE = Buffer.from(row.NOME_CLIENTE, "latin1").toString("utf8");
+                                    row.NOME_CLIENTE = row.NOME_CLIENTE;
                                 }
                             }
 
@@ -128,12 +127,6 @@ export default (function OsService() {
 
                         try {
                             await processBlobs(result, "OBS");
-
-                            for (const row of result) {
-                                if (row.NOME_CLIENTE) {
-                                    row.NOME_CLIENTE = Buffer.from(row.NOME_CLIENTE, "latin1").toString("utf8");
-                                }
-                            }
 
                             db.detach();
                             resolve(result);

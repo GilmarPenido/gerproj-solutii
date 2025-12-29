@@ -6,12 +6,13 @@ type ModalType = {
   isOpen: boolean, 
   setOpenModal:  Dispatch<SetStateAction<boolean>>, 
   title: string, 
-  action?: () => {} | undefined
+  actionText?: string|undefined, 
+  action?: Function | undefined
 }
 
 
 
-export default function Modal({ children, isOpen, setOpenModal, title, action}: ModalType) {
+export default function Modal({ children, isOpen, setOpenModal, title, actionText, action}: ModalType) {
   const [showModal, setShowModal] = useState(isOpen);
   return (
     <>
@@ -56,9 +57,9 @@ export default function Modal({ children, isOpen, setOpenModal, title, action}: 
                     <button
                       className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
                       type="button"
-                      onClick={action}
+                      onClick={action as any}
                     >
-                      Confirmar
+                      { actionText ? actionText : "Confirmar" }
                     </button>
                   }
                   

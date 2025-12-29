@@ -1,5 +1,6 @@
 import { ChamadosType, STATUS_CHAMADO, STATUS_CHAMADO_COD } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
+import iconv from "iconv-lite"
 
 export default async function ApointService(
     os: any,
@@ -9,7 +10,6 @@ export default async function ApointService(
     endTime: string,
     recurso: string,
     task: any): Promise<boolean> {
-
 
     return new Promise(async (resolve, reject) => {
 
@@ -87,6 +87,28 @@ export default async function ApointService(
                     });
             }) */
 
+            let NUM_OS_MATER: any = await new Promise<[number, number|string]>((resolve, reject) => {
+
+                db.query(`SELECT Max(OS.num_os) as num_os FROM
+                            OS
+                                INNER JOIN
+                            TAREFA  on TAREFA.cod_tarefa = OS.codtrf_os
+
+                            WHERE
+                            TAREFA.cod_tarefa = ?
+                            and OS.codrec_os = ?`,
+                    [   os.COD_TAREFA
+                        ,recurso
+
+                    ], async function (err: any, res: any) {
+                        if (err) {
+                            db.detach()
+                            return reject(err);
+                        }
+                        return resolve(res)
+                    })
+            })
+
             let [COD_OS, NUM_OS] = await new Promise<[number, number|string]>((resolve, reject) => {
 
                 db.query(`SELECT MAX(COD_OS) + 1 as COD_OS, MAX(NUM_OS) as NUM_OS FROM OS`,
@@ -101,7 +123,9 @@ export default async function ApointService(
             
             NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6)
 
-            console.log(COD_OS, NUM_OS)
+            if(NUM_OS_MATER.length) {
+                NUM_OS = NUM_OS_MATER[0]['NUM_OS']
+            }
             
             let success = await new Promise((resolve, reject) => {
                 transaction.query(
@@ -140,7 +164,7 @@ export default async function ApointService(
                         recurso,
                         'SIM',  //PRODUTIVO2_OS
                         os.RESPCLI_PROJETO, //RESPCLI_OS
-                        description,
+                        iconv.encode( description, 'WIN1252'),
                         'NAO',
                         'NAO',
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
@@ -170,12 +194,10 @@ export default async function ApointService(
 
             success = await transaction.commit((err: Error) => {
                 if (err) {
-                    console.log(8)
                     transaction.rollback();
                     return reject(err)
                 }
                 else {
-                    console.log(9)
                     db.detach();
                     return resolve(true)
                 }
@@ -184,7 +206,6 @@ export default async function ApointService(
 
 
         } catch (err) {
-            console.log(10, err)
             db.detach();
             return reject(err)
         }

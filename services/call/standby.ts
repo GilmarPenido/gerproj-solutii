@@ -1,5 +1,6 @@
 import { ChamadosType, STATUS_CHAMADO, STATUS_CHAMADO_COD } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
+import iconv from "iconv-lite"
 
 export default async function UpdateCallService(
     chamado: any,
@@ -87,6 +88,32 @@ export default async function UpdateCallService(
                     });
             })
 
+            let NUM_OS_MATER: any = await new Promise<[number, number|string]>((resolve, reject) => {
+
+                db.query(`SELECT Max(OS.num_os) as num_os FROM
+                            OS
+                                INNER JOIN
+                            CHAMADO on CHAMADO.cod_chamado = OS.chamado_os
+                                INNER JOIN
+                            TAREFA  on TAREFA.cod_tarefa = OS.codtrf_os
+
+                            WHERE
+                            CHAMADO.cod_chamado = ?
+                            and TAREFA.cod_tarefa = ?
+                            and OS.codrec_os = ?`,
+                    [   chamado.COD_CHAMADO
+                        ,chamado.CODTRF_CHAMADO??task[0].COD_TAREFA
+                        ,chamado.COD_RECURSO
+
+                    ], async function (err: any, res: any) {
+                        if (err) {
+                            db.detach()
+                            return reject(err);
+                        }
+                        return resolve(res)
+                    })
+            })
+
             let [COD_OS, NUM_OS] = await new Promise<[number, number|string]>((resolve, reject) => {
 
                 db.query(`SELECT MAX(COD_OS) + 1 as COD_OS, MAX(NUM_OS) as NUM_OS FROM OS`,
@@ -99,7 +126,12 @@ export default async function UpdateCallService(
                     })
             })
             
-            NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6) 
+            NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6)
+
+            if(NUM_OS_MATER.length) {
+                NUM_OS = NUM_OS_MATER[0]['NUM_OS']
+            }
+            
             
             success = await new Promise((resolve, reject) => {
                 transaction.query(
@@ -139,7 +171,7 @@ export default async function UpdateCallService(
                         chamado.COD_RECURSO,
                         'SIM',  //PRODUTIVO2_OS
                         task[0].RESPCLI_PROJETO, //RESPCLI_OS
-                        description,
+                        iconv.encode( description, 'WIN1252'),
                         'NAO',
                         'NAO',
                         new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),

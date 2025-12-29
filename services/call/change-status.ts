@@ -1,7 +1,8 @@
 import { ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
+import { sendEmail } from "../email/email";
 
-export default async function ChangeStatusService(codChamado: string, status: string): Promise<boolean> {
+export default async function ChangeStatusService(codChamado: string, status: string, email = ""): Promise<boolean> {
 
 
     return new Promise(async (resolve, reject) => {
@@ -43,11 +44,13 @@ export default async function ChangeStatusService(codChamado: string, status: st
             })
 
 
+            let conclusaoChamado = status === STATUS_CHAMADO.FINALIZADO ?  new Date().toLocaleString('pt-br').substring(0,10) : ''
+
             await new Promise((resolve, reject) => {
 
                 transaction.query(`
-                        UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
-                    [status, codChamado, STATUS_CHAMADO.FINALIZADO], async function (err: any, result: any) {
+                        UPDATE CHAMADO SET STATUS_CHAMADO = ?, CONCLUSAO_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
+                    [status,  conclusaoChamado, codChamado, STATUS_CHAMADO.FINALIZADO], async function (err: any, result: any) {
                         if (err) {
                             db.detach()
                             transaction.rollback();
@@ -79,6 +82,7 @@ export default async function ChangeStatusService(codChamado: string, status: st
 
                         
                     });
+
             })
 
             transaction.commit((err: Error) => {
@@ -88,6 +92,13 @@ export default async function ChangeStatusService(codChamado: string, status: st
                 }
                 else {
                     db.detach();
+
+                    if(status === STATUS_CHAMADO["AGUARDANDO VALIDACAO"]) {
+                        sendEmail(email, 'Validação de Atendimento | Solutii', {
+                            numero: codChamado
+                        } as any)
+                    }
+
                     return resolve(true)
                 }
 
@@ -98,5 +109,9 @@ export default async function ChangeStatusService(codChamado: string, status: st
             db.detach();
             return reject(err)
         }
+
+
+
+
     })
 }

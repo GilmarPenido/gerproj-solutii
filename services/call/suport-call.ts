@@ -21,6 +21,7 @@ export default async function SuportCallService(recurso: string): Promise<Chamad
             COD_RECURSO,
             SOLICITACAO_CHAMADO,    -- BLOB TEXT
             CLIENTE.ACESSO_CLIENTE, -- BLOB TEXT
+            CLIENTE.COD_CLIENTE,
             CLIENTE.NOME_CLIENTE
           FROM CHAMADO
           INNER JOIN CLIENTE ON CLIENTE.COD_CLIENTE = CHAMADO.cod_cliente

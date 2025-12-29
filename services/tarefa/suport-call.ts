@@ -1,6 +1,6 @@
 import { ChamadosType } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
-
+import iconv from 'iconv-lite'
 export default async function SuportCallService(recurso: string): Promise<ChamadosType[]> {
     
 

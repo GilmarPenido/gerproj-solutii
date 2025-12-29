@@ -9,14 +9,17 @@ import { TbCalendarCheck } from "react-icons/tb";
 import { ImStop } from "react-icons/im";
 import { HiOutlineClipboardDocumentList } from "react-icons/hi2";
 import { IoCloseCircleOutline } from "react-icons/io5";
+import { MdOutlineDriveFolderUpload } from "react-icons/md";
+import { HiOutlineFolderDownload } from "react-icons/hi";
 import Modal from "@/components/modal";
 import Loading from "@/components/loading";
 import { PiTrashDuotone } from "react-icons/pi";
 import { LuPointer } from "react-icons/lu";
-import   iconv from 'iconv-lite';
 import { CiEdit } from "react-icons/ci";
 import Swal from 'sweetalert2'
 import { STATUS_TASK, TaskType } from "@/models/tarefa";
+import iconv from 'iconv-lite'
+import UserComponent from "@/components/user";
 
 export default function Home() {
     const { data: session } = useSession();
@@ -36,7 +39,8 @@ export default function Home() {
     
     const [modalTarefa, setModalTarefa] = useState(false);
     const [modalEditOS, setModalEditOS] = useState(false);
-    const [textArea, setTextArea] = useState("");
+    const [isUploading, setIsUploading] = useState(false)
+    const [isChangeAccess, setIsChangeAccess] = useState(false)
     const [loadingOs, setLoadingOs] = useState(false);
     const [listOs, setListOs] = useState([]);
     const [hours, setHours] = useState({
@@ -310,8 +314,6 @@ export default function Home() {
             return;
         }
 
-        console.log("passou por aqui")
-
         if(status != "START" && (chamado.COD_CLASSIFICACAO === null || chamado.COD_CLASSIFICACAO === 0)) {
 
             let selectedClassificacao: any = await fetch("/api/call/classificacao", {
@@ -327,7 +329,7 @@ export default function Home() {
 
 
         let result = await fetch(
-            "/api/call/change-status?codChamado=" + chamado.COD_CHAMADO + "&status=" + status
+            "/api/call/change-status?codChamado=" + chamado.COD_CHAMADO + "&status=" + status + "&email=" + chamado.EMAIL_CHAMADO
         )
             .then((res) => res.json())
             .then((res) => res);
@@ -398,19 +400,19 @@ export default function Home() {
             return;
         }
 
-     
+    
         if (!os) {
             console.log(os)
             alert("Selecione um projeto!");
             return;
         }
-
+        
         //criar uma função identica a esta para validar as horas do projeto
 
-        /* let responseValidHours = await fetch("/api/call/valid-hours", {
+        let responseValidHours = await fetch("/api/os/valid-hours", {
             method: "POST",
             body: JSON.stringify({
-                chamado: chamado.COD_CHAMADO,
+                chamado: os.COD_TAREFA,
                 date,
                 startTime: hours.initial,
                 endTime: hours.final,
@@ -423,24 +425,20 @@ export default function Home() {
         if(responseValidHours && responseValidHours[0] < responseValidHours[1]) {
 
             let horasTotais =  responseValidHours[0] / 60
-            let horasApontadas = responseValidHours[1] / 60
+            //let horasApontadas = responseValidHours[1] / 60
 
             const confirmacao = await Swal.fire({
                 title: `Horas mês: ${horasTotais}h`,
-                text: `Horas para está tarefa já ultrapassaram o limite do mês, total final após apontamento: ${horasApontadas}h`,
+                text: `Horas para está Tarefa já ultrapassaram o limite, impossível realizar o apontamento.`,
                 icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Confirmar apontamento!',
-                cancelButtonText: 'Cancelar'
+                showCancelButton: false,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Confirmar',
             })
 
-            if (confirmacao.isDenied || confirmacao.isDismissed) {
                 return;
-            }
 
-        }*/
+        }
 
 
         let task = await fetch("/api/get-task", {
@@ -577,10 +575,28 @@ export default function Home() {
         setModalStandby(false);
     }
 
+    async function salvarAcessoCliente(){
+
+        setIsChangeAccess(true)
+        
+        let result = await fetch("/api/acesso", {
+            method: "POST",
+            body: JSON.stringify({
+                descricao: description,
+                cliente: selectedCall?.COD_CLIENTE
+            })
+        })
+
+        getCalls()
+
+        setIsChangeAccess(false)
+        
+    }
+
     function openDescriptions(chamado: ChamadosType) {
         let desc = chamado?.SOLICITACAO_CHAMADO?.trim();
         desc = desc?.substring(1, desc.length - 1);
-
+        setSelectedCall(chamado)
         setDescription(desc??"");
         setOpenModal(true);
     }
@@ -868,8 +884,29 @@ export default function Home() {
         return selectedDate >= (limitDate??'') && selectedDate < tomorrow
     }
 
+
     return (
         <main className="w-full h-full flex flex-col justify-center items-center p-4">
+
+            { isUploading &&
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-4">
+                        <Loading />
+                        <p className="text-gray-700">Enviando arquivo...</p>
+                    </div>
+                </div>
+            }
+
+            { isChangeAccess &&
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-4">
+                        <Loading />
+                        <p className="text-gray-700">Atualizando acesso...</p>
+                    </div>
+                </div>
+            }
+
+
             {isOpenModal && 
                 <Modal
                     isOpen={isOpenModal}
@@ -888,12 +925,21 @@ export default function Home() {
                     isOpen={isOpenModal2}
                     setOpenModal={setOpenModal2}
                     title="Descrição"
+
+                    action={salvarAcessoCliente}
+                    actionText="Salvar"
                 >
-                    <p
-                        className="my-4 text-blueGray-500 text-lg leading-relaxed"
-                    >
-                        {description}
-                    </p>
+                    
+                    <textarea 
+                    
+                    onChange={event => setDescription(event.target.value)}
+                    style={{
+                        width: '100%',
+                        resize: 'none',
+                        minHeight: '300px',
+                        padding: '10px'
+                    }} name="acesso" id="acesso" value={description} />
+                    
                 </Modal>
             }
 
@@ -1080,15 +1126,7 @@ export default function Home() {
                 </Modal>
             )}
 
-            <header className="flex flex-row w-full justify-around p-4">
-                <p className="text-blue-500">{iconv.decode(session?.user.name??'', 'ISO-8859-1')}</p>
-                <p
-                    className="bg-zync-500 text-blue-500 rounded-lg cursor-pointer"
-                    onClick={() => signOut()}
-                >
-                    Logout
-                </p>
-            </header>
+            <UserComponent signOut={signOut} onSave={()=>{}}/>
 
             <section className="flex flex-row justify-center w-full margin-auto max-w-[800px]">
                 <h2
@@ -1142,7 +1180,7 @@ export default function Home() {
                             <th>E-mail</th>
 			    <th className="cursor-pointer" onClick={_ => orderTo('DTENVIO_CHAMADO')}>Data</th>                            
 			    <th className="cursor-pointer" onClick={_ => orderTo('STATUS_CHAMADO')}>Status</th>
-                            <th>Actions</th>
+                            <th>Ações</th>
                             <th className="w-[130px] rounded-tr-lg">Arquivos</th>
                         </tr>
                     </thead>
@@ -1160,7 +1198,7 @@ export default function Home() {
                                 <td className="text-center p-2">
                                     {c?.COD_CHAMADO?.toLocaleString("pt-br")}
                                 </td>
-                                <td className="text-start  p-2">{c?.ASSUNTO_CHAMADO}</td>
+                                <td className="text-start  p-2">{Buffer.from(c?.ASSUNTO_CHAMADO, "latin1").toString("utf8")}</td>
                                 <td className="text-start  p-2">{c?.EMAIL_CHAMADO}</td>
 				<td className="text-center  p-2">
                                     {c?.DTENVIO_CHAMADO?.replace("-", " ")}
@@ -1234,7 +1272,61 @@ export default function Home() {
                                         size={18}
                                     />
                                 </td>
-                                <td><a href={"/api/arquivos?codChamado="+c?.COD_CHAMADO} target="_blank">Download</a></td>
+                                <td >
+                                    <div style={{
+                                        display: "flex",
+                                        flexDirection: 'row-reverse',
+                                        alignItems: 'start',
+                                        gap: 8
+                                    }}>
+
+                                    
+                                    <form
+                                        action={"/api/upload"+c?.COD_CHAMADO}
+                                        method="post"
+                                        encType="multipart/form-data"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <input
+                                            type="file"
+                                            name="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            id={`upload-${c?.COD_CHAMADO}`}
+                                            onChange={(e) => {
+                                                if (e.target.files?.length) {
+                                                    const formData = new FormData();
+                                                    formData.append("file", e.target.files[0]);
+                                                    formData.append("codChamado", c?.COD_CHAMADO);
+
+                                                    setIsUploading(true)
+
+                                                    fetch("/api/upload/?codChamado="+c?.COD_CHAMADO, {
+                                                        method: "POST",
+                                                        body: formData,
+                                                    })
+                                                        .then((res) => res.json())
+                                                        .then((data) => {
+                                                            if (data.success) {
+                                                                alert("Upload realizado com sucesso!");
+                                                            } 
+                                                        })
+                                                        .catch(() => alert("Erro ao realizar upload."))
+                                                        .finally( ()=> setIsUploading(false))
+                                                }
+                                            }}
+                                        />
+                                        <label
+                                            htmlFor={`upload-${c?.COD_CHAMADO}`}
+                                            className="cursor-pointer text-blue-500 hover:text-blue-700"
+                                        >
+                                            <MdOutlineDriveFolderUpload title="Upload" size="22" /> 
+                                        </label>
+                                    </form>
+                                    <a  href={"/api/arquivos?codChamado="+c?.COD_CHAMADO} target="_blank"><HiOutlineFolderDownload color="green" title="Download" size="22"/></a>
+
+                                    </div>
+                                </td>
                             </tr>
                         ))}
                     </tbody>

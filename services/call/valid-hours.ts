@@ -59,9 +59,6 @@ export default async function ValidHoursService(
                     })
             })
 
-            console.log("zzz", responseHrsTotais)
-
-
             if (!responseHrsTotais) {
                 return resolve([])
             }
@@ -80,8 +77,6 @@ export default async function ValidHoursService(
             }
 
             let minTotais: number = 0
-
-            console.log(responseHrsTotais)
 
             minTotais = responseHrsTotais.reduce((acum, response) => {
                 return (acum + getTimeToMinutes(response['HRINI_OS'], response['HRFIM_OS']))
