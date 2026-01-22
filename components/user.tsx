@@ -271,7 +271,13 @@ export default function UserComponent({ signOut, onSave }: UserProps) {
                                                 {checked && (
                                                     <textarea
                                                         value={obsMap[area.COD_AREA] ?? ""}
-                                                        onChange={(e) => setObs(area.COD_AREA, e.target.value)}
+                                                        onChange={(e) => {
+                                                            const sanitized = e.target.value
+                                                                .normalize('NFD')
+                                                                .replace(/[\u0300-\u036f]/g, '')
+                                                                .replace(/[^a-zA-Z0-9\s.,;:!?\-()]/g, '');
+                                                            setObs(area.COD_AREA, sanitized);
+                                                        }}
                                                         maxLength={250}
                                                         placeholder="Observação (máx 250 caracteres)"
                                                         className="w-full border rounded p-2 text-sm resize-y"

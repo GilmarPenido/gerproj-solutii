@@ -5,10 +5,10 @@ async function handler(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const codChamado = searchParams.get('codChamado')
   const status = searchParams.get('status')
-  
+  const data   = searchParams.get('data')
 
   try {
-    const response = await ChangeStatusService(codChamado??'', status??'')
+    const response = await ChangeStatusService(codChamado??'', status??'', '', data??'')
 
     return NextResponse.json(response)
   } catch(error) {

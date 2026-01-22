@@ -1,14 +1,18 @@
-import findClienteByName from '@/services/cliente';
+
+import findChamado from '@/services/ticket';
 import { NextResponse, type NextRequest } from 'next/server'
  
 async function handlerPost(request: NextRequest) {
   
   const  {
-    name,
+    client,
+    stats,
+    consultant
   } = await request.json()
 
-  const response = await findClienteByName(name)
+  const response = await findChamado(stats,client, consultant)
   return NextResponse.json(response)
+
 }
 
 

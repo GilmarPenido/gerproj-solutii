@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsx:*)",
+      "Bash(node scripts/test-nfce.mjs:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}

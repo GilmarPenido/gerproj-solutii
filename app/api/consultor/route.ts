@@ -1,4 +1,4 @@
-import findClienteByName from '@/services/cliente';
+import findRecursoByName from '@/services/consultor';
 import { NextResponse, type NextRequest } from 'next/server'
  
 async function handlerPost(request: NextRequest) {
@@ -7,7 +7,7 @@ async function handlerPost(request: NextRequest) {
     name,
   } = await request.json()
 
-  const response = await findClienteByName(name)
+  const response = await findRecursoByName(name)
   return NextResponse.json(response)
 }
 

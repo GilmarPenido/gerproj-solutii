@@ -327,9 +327,45 @@ export default function Home() {
             return;
         }
 
+        let data = ""
+
+        if(status === STATUS_CHAMADO['FINALIZADO']) {
+            const now = new Date();
+            const defaultDatetime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const { value: dataFinalizacao, isConfirmed } = await Swal.fire({
+                title: 'Data de Finalização',
+                html: `<input type="datetime-local" id="swal-datetime" class="swal2-input" value="${defaultDatetime}" max="${defaultDatetime}">`,
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const input = document.getElementById('swal-datetime') as HTMLInputElement;
+                    if (!input.value) {
+                        Swal.showValidationMessage('A data de finalização é obrigatória!');
+                        return false;
+                    }
+                    const selectedDate = new Date(input.value);
+                    if (selectedDate > new Date()) {
+                        Swal.showValidationMessage('A data de finalização não pode ser maior que a data atual!');
+                        return false;
+                    }
+                    return input.value;
+                }
+            });
+
+            if (!isConfirmed || !dataFinalizacao) {
+                return;
+            }
+
+            // Parse de yyyy-MM-ddTHH:mm para dd.mm.aaaa HH:mm
+            const [datePart, timePart] = dataFinalizacao.split('T');
+            const [year, month, day] = datePart.split('-');
+            data = `${day}.${month}.${year} ${timePart}`;
+        }
 
         let result = await fetch(
-            "/api/call/change-status?codChamado=" + chamado.COD_CHAMADO + "&status=" + status + "&email=" + chamado.EMAIL_CHAMADO
+            "/api/call/change-status?codChamado=" + chamado.COD_CHAMADO + "&status=" + status + "&email=" + chamado.EMAIL_CHAMADO + "&data=" + encodeURIComponent(data)
         )
             .then((res) => res.json())
             .then((res) => res);

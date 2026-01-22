@@ -128,7 +128,9 @@ export default async function UpdateCallService(
             
             NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6)
 
-            if(NUM_OS_MATER.length) {
+            console.log('num os manter', NUM_OS_MATER)
+
+            if(!!NUM_OS_MATER[0]['NUM_OS']) {
                 NUM_OS = NUM_OS_MATER[0]['NUM_OS']
             }
             

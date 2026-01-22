@@ -123,7 +123,7 @@ export default async function ApointService(
             
             NUM_OS = `000${String( parseInt(NUM_OS as string)+1)}`.slice(-6)
 
-            if(NUM_OS_MATER.length) {
+            if(!!NUM_OS_MATER[0]['NUM_OS']) {
                 NUM_OS = NUM_OS_MATER[0]['NUM_OS']
             }
             

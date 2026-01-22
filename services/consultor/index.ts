@@ -20,12 +20,12 @@ const readBlob = (blobFn: any): Promise<string> => {
     });
 };
 
-async function findClienteByName(nome: string): Promise<any[]> {
+async function findRecursoByName(nome: string): Promise<any[]> {
     return new Promise((resolve, reject) => {
         Firebird.attach(options, (err: any, db: any) => {
             if (err) return reject(err);
 
-            const q = `SELECT * FROM CLIENTE WHERE UPPER(NOME_CLIENTE) LIKE ? ORDER BY NOME_CLIENTE`;
+            const q = `SELECT * FROM recurso WHERE UPPER(NOME_RECURSO) LIKE ? ORDER BY NOME_RECURSO`;
             db.query(q, [`%${(nome || "").toUpperCase()}%`], async (err: any, result: any) => {
                 if (err) {
                     db.detach();
@@ -62,4 +62,4 @@ async function findClienteByName(nome: string): Promise<any[]> {
     });
 }
 
-export default findClienteByName;
+export default findRecursoByName;

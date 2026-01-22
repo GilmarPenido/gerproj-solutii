@@ -2,7 +2,7 @@ import { ChamadosType, STATUS_CHAMADO } from "@/models/chamados";
 import { Firebird, options } from "../firebird";
 import { sendEmail } from "../email/email";
 
-export default async function ChangeStatusService(codChamado: string, status: string, email = ""): Promise<boolean> {
+export default async function ChangeStatusService(codChamado: string, status: string, email = "", conclusaoChamado = new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: "2-digit", minute: '2-digit'}).replaceAll('/', '.').replaceAll(',', '')): Promise<boolean> {
 
 
     return new Promise(async (resolve, reject) => {
@@ -43,9 +43,10 @@ export default async function ChangeStatusService(codChamado: string, status: st
                 })
             })
 
-
-            let conclusaoChamado = status === STATUS_CHAMADO.FINALIZADO ?  new Date().toLocaleString('pt-br').substring(0,10) : ''
-
+            //se não estiver finalizando o chamado, limpa o campo
+            if(! (status === STATUS_CHAMADO.FINALIZADO)) {
+                conclusaoChamado = ""
+            }
             await new Promise((resolve, reject) => {
 
                 transaction.query(`

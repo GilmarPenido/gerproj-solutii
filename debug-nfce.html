@@ -1,0 +1,395 @@
+<!--?xml version='1.0' encoding='UTF-8' ?--><!DOCTYPE html><html lang="pt_BR" xmlns="http://www.w3.org/1999/xhtml"><head id="j_idt2">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="author" content="SEF - LRP, MSB, R">
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" type="image/x-icon" href="/portalnfce/resourcelib/images/favicon.ico">
+		<title>Secretaria de Estado de Fazenda de Minas Gerais - SEF/MG</title><link type="text/css" rel="stylesheet" href="/portalnfce/javax.faces.resource/theme.css.xhtml?ln=primefaces-bootstrap"><link type="text/css" rel="stylesheet" href="/portalnfce/javax.faces.resource/fa/font-awesome.css.xhtml?ln=primefaces&amp;v=7.0"><link type="text/css" rel="stylesheet" href="RES_NOT_FOUND"><link type="text/css" rel="stylesheet" href="/portalnfce/javax.faces.resource/primeicons/primeicons.css.xhtml?ln=primefaces&amp;v=7.0"><link type="text/css" rel="stylesheet" href="/portalnfce/javax.faces.resource/css/bootstrap.min.css.xhtml?ln=resourcelib"><link type="text/css" rel="stylesheet" href="/portalnfce/javax.faces.resource/css/open-sans.css.xhtml?ln=resourcelib"><link type="text/css" rel="stylesheet" href="/portalnfce/javax.faces.resource/css/main.css.xhtml?ln=resourcelib"><link type="text/css" rel="stylesheet" href="/portalnfce/javax.faces.resource/components.css.xhtml?ln=primefaces&amp;v=7.0"><script type="text/javascript" src="/portalnfce/javax.faces.resource/jquery/jquery.js.xhtml?ln=primefaces&amp;v=7.0"></script><script type="text/javascript" src="/portalnfce/javax.faces.resource/jquery/jquery-plugins.js.xhtml?ln=primefaces&amp;v=7.0"></script><script type="text/javascript" src="/portalnfce/javax.faces.resource/core.js.xhtml?ln=primefaces&amp;v=7.0"></script><script type="text/javascript" src="/portalnfce/javax.faces.resource/components.js.xhtml?ln=primefaces&amp;v=7.0"></script><script type="text/javascript" src="/portalnfce/javax.faces.resource/printer/printer.js.xhtml?ln=primefaces&amp;v=7.0"></script><script type="text/javascript" src="/portalnfce/javax.faces.resource/validation/validation.js.xhtml?ln=primefaces&amp;v=7.0"></script><script type="text/javascript" src="/portalnfce/javax.faces.resource/validation/beanvalidation.js.xhtml?ln=primefaces&amp;v=7.0"></script><script type="text/javascript">if(window.PrimeFaces){PrimeFaces.settings.locale='pt_BR';PrimeFaces.settings.validateEmptyFields=true;PrimeFaces.settings.considerEmptyStringNull=false;}</script><!--[if lt IE 9]>   <script src="/portalnfce/resources/js/html5shiv.js"></script>  <script src="/portalnfce/resources/js/respond.min.js"></script> <![endif]--><script type="text/javascript" src="/portalnfce/javax.faces.resource/js/pf_localePt_BR.js.xhtml?ln=resourcelib"></script><script type="text/javascript" src="/portalnfce/javax.faces.resource/js/geral.js.xhtml?ln=resourcelib"></script></head><body><div id="jquery" class="ui-panel ui-widget ui-widget-content ui-corner-all" style="display:none" data-widget="widget_jquery"><div id="jquery_content" class="ui-panel-content ui-widget-content"></div></div>
+	<div id="wrap">
+		<div class="container">
+<form id="formPrincipal" name="formPrincipal" method="post" action="/portalnfce/sistema/consultaresumida.xhtml" class="form-horizontal" enctype="multipart/form-data">
+<input type="hidden" name="formPrincipal" value="formPrincipal">
+
+
+	<div class="navbar navbar-default navbar-fixed-top hidden-print">
+		<div class="navbar-header">
+			<a href="/portalnfce/index.xhtml"><img src="/portalnfce/sistema/images/logo_small.png" alt="Intranet SEF - Secretaria de Estado de Fazenda">
+			</a>
+			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+				<span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+			</button>
+		</div>
+		<div class="collapse navbar-collapse">
+			<ul class="nav navbar-nav">
+				<li>
+					<a href="/portalnfce/sistema/consultaarg.xhtml">Consultar NFC-e
+					</a>
+				</li>
+				<li>
+					<a href="/portalnfce/sistema/consultainutilizacao.xhtml">Consultar Inutilização
+					</a>
+				</li> 
+			</ul>
+		</div>
+	</div>
+
+				<div id="page-content-wrapper">
+					<div class="container-fluid">
+		<div class="table-responsive"><div id="formPrincipal:content-template-consulta" class="ui-outputpanel ui-widget">
+				<h4>
+					</h4><h1>
+			<div class="row">
+				<div class="col-md-4 col-lg-4"></div>
+				<div class="col-xs-12 col-md-2"><script type="text/javascript" src="/portalnfce/javax.faces.resource/jsf.js.xhtml?ln=javax.faces"></script><a href="#" onclick="mojarra.jsfcljs(document.getElementById('formPrincipal'),{'formPrincipal:j_idt27':'formPrincipal:j_idt27'},'');return false" class="btn btn-primary center-block">Nova consulta
+						<i class="fa fa-search"></i></a>
+				</div>
+				<div class="col-xs-12 col-md-2 col-lg-2"><a href="#" onclick="mojarra.jsfcljs(document.getElementById('formPrincipal'),{'formPrincipal:j_idt30':'formPrincipal:j_idt30'},'');return false" class="btn btn-primary center-block">Consulta Detalhada
+						<i class="fa fa-file"></i></a>
+				</div>
+			</div>
+			<br>
+			</h1><h4>Consulta Resumida - Ambiente de Produção
+			</h4>
+					
+				<div id="formPrincipal:contentPopup" class="ui-outputpanel ui-widget">
+
+		<div class="modal fade" role="dialog">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<div class="pull-right">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+								<span class="ui-icon ui-icon-close"></span>
+							</button>
+						</div>
+						<h3>
+						</h3>
+					</div>
+					<div class="modal-body">
+						<table class="table table-hover">
+							<thead>
+								<tr>
+									<th>Orgão</th>
+									<th>Versão</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td> - </td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+						<br>
+						<table class="table table-hover">
+							<thead>
+								<tr>
+									<th>Autor</th>
+									<th>Chave de acesso</th>
+									<th>Data evento</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td></td>
+									<td></td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+						<br>
+						<table class="table table-hover">
+							<thead>
+								<tr>
+									<th>Tipo de evento</th>
+									<th>Sequencial do Evento</th>
+									<th>Versão do Evento</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td> - 
+									</td>
+									<td></td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+						<br><div id="formPrincipal:j_idt75" class="ui-panel ui-widget ui-widget-content ui-corner-all" data-widget="widget_formPrincipal_j_idt75"><div id="formPrincipal:j_idt75_header" class="ui-panel-titlebar ui-widget-header ui-helper-clearfix ui-corner-all"><span class="ui-panel-title">Detalhes do evento</span></div><div id="formPrincipal:j_idt75_content" class="ui-panel-content ui-widget-content">
+							<div id="divDetalhesEvento">
+
+							</div></div></div>
+					</div>
+					<div class="modal-footer">
+						<div class="pull-right"><button id="formPrincipal:j_idt96" name="formPrincipal:j_idt96" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left btn btn-sm btn-primary" onclick="PrimeFaces.expressions.SearchExpressionFacade.resolveComponentsAsSelector('formPrincipal:contentPopup').jqprint();return false;" type="button" role="button" aria-disabled="false"><span class="ui-button-icon-left ui-icon ui-c ui-icon-print"></span><span class="ui-button-text ui-c">Imprimir</span></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div></div>
+<div id="formPrincipal:messages" class="ui-messages ui-widget" aria-live="polite" data-global="false" data-summary="data-summary" data-severity="all,error" data-redisplay="true"></div><span id="formPrincipal:growl" class="ui-growl-pl" data-widget="widget_formPrincipal_growl" data-global="data-global" data-summary="data-summary" data-detail="data-detail" data-severity="all,error" data-redisplay="true"></span><div id="formPrincipal:j_idt100"></div><div id="formPrincipal:j_idt101" class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-shadow ui-hidden-container" role="dialog" aria-labelledby="formPrincipal:j_idt101_title" aria-describedby="formPrincipal:j_idt101_content" aria-hidden="true" aria-modal="true" style="width: auto; height: auto;"><div class="ui-dialog-content ui-widget-content" id="formPrincipal:j_idt101_content" style="height: auto;"><img id="formPrincipal:j_idt102" src="/portalnfce/javax.faces.resource/images/loader.gif.xhtml?ln=resourcelib" alt="" style="z-index:2200 !important;"></div></div>
+
+<div id="formPrincipal:j_idt104" class="ui-panel ui-widget ui-widget-content ui-corner-all" data-widget="widget_formPrincipal_j_idt104"><div id="formPrincipal:j_idt104_header" class="ui-panel-titlebar ui-widget-header ui-helper-clearfix ui-corner-all"><span class="ui-panel-title">Chave de acesso</span></div><div id="formPrincipal:j_idt104_content" class="ui-panel-content ui-widget-content">
+		<h5>31-25/12-48.793.792/0008-00-65-001-000.061.536-198.486.3270
+		</h5></div></div>
+			<br><div id="formPrincipal:j_idt109" class="ui-tabs ui-widget ui-widget-content ui-corner-all ui-hidden-container ui-tabs-top" data-widget="widget_formPrincipal_j_idt109"><ul class="ui-tabs-nav ui-helper-reset ui-widget-header ui-corner-all" role="tablist"><li class="ui-tabs-header ui-state-default ui-tabs-selected ui-state-active ui-corner-top" role="tab" aria-expanded="true" aria-selected="true" data-index="0" tabindex="0"><a href="#formPrincipal:j_idt109:j_idt110" tabindex="-1">NFC-e</a></li></ul><div class="ui-tabs-panels"><div id="formPrincipal:j_idt109:j_idt110" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-hidden="false" data-index="0">
+
+
+<h4>NFC-e
+</h4>
+
+<table class="table table-hover">
+	<thead>
+		<tr>
+			<th>Modelo</th>
+			<th>Série</th>
+			<th>Número</th>
+			<th>Data Emissão</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>65</td>
+			<td>1</td>
+			<td>61536</td>
+
+			<td>31/12/2025 09:37:00</td>
+		</tr>
+	</tbody>
+</table>
+<br>
+<h4>Valores
+</h4>
+<table class="table table-hover">
+	<thead>
+		<tr>
+			<th>Valor total do serviço</th>
+			<th>Base de Cálculo ICMS</th>
+			<th>Valor ICMS</th>
+
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>R$ 7,96</td>
+			<td>R$ 0,00</td>
+			<td>R$ 0,00</td>
+
+		</tr>
+
+	</tbody>
+</table>
+<br>
+<div class="table-responsive">
+	<h4>Emitente
+	</h4>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>CNPJ</th>
+				<th>Nome / Razão Social</th>
+				<th>Inscrição Estadual</th>
+				<th>UF</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>48793792000800</td>
+				<td>ADICAO ALIMENTOS LTDA</td>
+				<td>0044967700543</td>
+				<td>MG</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<br>
+<h4>Destinatário
+</h4>
+<table class="table table-hover">
+	<thead>
+		<tr>
+
+			<th>Nome / Razão Social</th>
+			<th>UF</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td></td>
+			<td></td>
+		</tr>
+	</tbody>
+</table>
+<br>
+<table class="table table-hover">
+	<thead>
+		<tr>
+			<th>Destino da operação</th>
+			<th>Consumidor final</th>
+			<th>Presença do Comprador</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><div id="formPrincipal:j_idt109:j_idt202">1 - Operação Interna</div></td>
+			<td><div id="formPrincipal:j_idt109:j_idt210">1 - Sim</div></td>
+			<td><div id="formPrincipal:j_idt109:j_idt216">1 - Operação presencial</div></td>
+		</tr>
+	</tbody>
+</table>
+<br>
+<div class="table-responsive">
+	<h4>Emissão
+	</h4>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Processo</th>
+				<th>Versão do Processo</th>
+				<th>Tipo de Emissão</th>
+				<th>Finalidade</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><div id="formPrincipal:j_idt109:j_idt240">0 - com aplicativo do Contribuinte</div></td>
+				<td>12</td>
+				<td><div id="formPrincipal:j_idt109:j_idt252">1 - Normal</div></td>
+				<td><div id="formPrincipal:j_idt109:j_idt270">1 - Normal</div></td>
+			</tr>
+		</tbody>
+	</table>
+	<br>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Natureza da Operação</th>
+				<th>Tipo da Operação</th>
+				<th>Digest Value da NFC-e</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>VENDA</td>
+				<td><div id="formPrincipal:j_idt109:j_idt288">1 - Saída</div></td>
+
+				<td>jrTvzjuKaU86ZPrbtOAdqDGyXcA=</td>
+
+			</tr>
+		</tbody>
+	</table>
+</div>
+<div class="table-responsive">
+	<h4>Produtos e Serviços
+	</h4>
+
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Número</th>
+				<th>Descrição</th>
+				<th>Quantidade</th>
+				<th>Unidade Comercial</th>
+				<th>Valor Unitário</th>
+				<th>Valor(R$)</th>
+			</tr>
+		</thead>
+		<tbody>
+				<tr>
+					<td>1</td>
+					<td>PICOLE UVA</td>
+					<td>1.0000</td>
+					<td>UN</td>
+					<td>R$ 1,99</td>
+					<td>R$ 1,99</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>PICOLE UVA</td>
+					<td>1.0000</td>
+					<td>UN</td>
+					<td>R$ 1,99</td>
+					<td>R$ 1,99</td>
+				</tr>
+				<tr>
+					<td>3</td>
+					<td>PICOLE UVA</td>
+					<td>1.0000</td>
+					<td>UN</td>
+					<td>R$ 1,99</td>
+					<td>R$ 1,99</td>
+				</tr>
+				<tr>
+					<td>4</td>
+					<td>PICOLE UVA</td>
+					<td>1.0000</td>
+					<td>UN</td>
+					<td>R$ 1,99</td>
+					<td>R$ 1,99</td>
+				</tr>
+		</tbody>
+	</table>
+</div>
+
+<br>
+<br>
+
+<div class="table-responsive"><fieldset id="formPrincipal:j_idt109:j_idt328" class="ui-fieldset ui-widget ui-widget-content ui-corner-all ui-hidden-container ui-fieldset-toggleable ui-hidden-container" data-widget="widget_formPrincipal_j_idt109_j_idt328"><legend class="ui-fieldset-legend ui-corner-all ui-state-default" role="button" tabindex="0"><span class="ui-fieldset-toggler ui-icon ui-icon-plusthick"></span>Situação atual: AUTORIZADA</legend><div class="ui-fieldset-content" style="display:none">
+
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th width="40%">Eventos da NFC-e</th>
+					<th>Protocolo</th>
+					<th>Data Autorização</th>
+					<th>Data Inclusão BD</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!--tr&gt;
+				&lt;td&gt;&lt;/td&gt;
+				&lt;td&gt;	&lt;h:outputText value="100" /&gt; &lt;/td&gt;
+				&lt;td&gt;&lt;/td&gt;
+				&lt;td&gt;&lt;/td&gt;
+				&lt;/tr-->
+				<tr>
+					<td><div id="formPrincipal:j_idt109:j_idt338">Autorização de Uso (Cód.: 110100)</div>		
+						</td>
+					
+					<td>131258842560912</td>
+					<td>31/12/2025 09:37:59</td>
+					<td>31/12/2025 00:00:00</td>
+
+				</tr>
+			</tbody>
+		</table></div><input type="hidden" id="formPrincipal:j_idt109:j_idt328_collapsed" name="formPrincipal:j_idt109:j_idt328_collapsed" value="true"></fieldset>
+</div>
+
+
+</div></div><input type="hidden" id="formPrincipal:j_idt109_activeIndex" name="formPrincipal:j_idt109_activeIndex" value="0" autocomplete="off"></div>
+	<br>
+	<div class="col-xs-12 col-md-2 pull-right"><a id="formPrincipal:j_idt410" href="#" onclick="jsf.util.chain(this,event,'PrimeFaces.expressions.SearchExpressionFacade.resolveComponentsAsSelector(\'formPrincipal:content-template-consulta\').jqprint();return false;','mojarra.jsfcljs(document.getElementById(\'formPrincipal\'),{\'formPrincipal:j_idt410\':\'formPrincipal:j_idt410\'},\'\')');return false" class="btn btn-primary center-block">Imprimir
+			<i class="fa fa-print"></i></a>
+	</div>
+					<br>
+					<br>
+					<br>
+
+<div class="pull-right"><label>Versão </label>1.2.20
+</div>
+</div>
+		</div>
+					</div>
+				</div><input type="hidden" name="javax.faces.ViewState" id="j_id1:javax.faces.ViewState:0" value="-4015369573588835851:3812177138565734376" autocomplete="off">
+</form>
+		</div>
+	</div>
+	<div id="footer" class="hidden-xs">
+
+	<p class="text-center hidden-print" style="padding-top: 10px;">Rodovia Papa João Paulo II, 4.001 - Prédio
+		Gerais (6º e 7º andares) - Bairro Serra Verde, Belo Horizonte/MG CEP 31630-901</p>
+	</div><script type="text/javascript" src="/portalnfce/javax.faces.resource/js/bootstrap.min.js.xhtml?ln=resourcelib"></script>
+	<span class="totop" style="display: none;"><a href="#"><i class="fa fa-angle-up"></i></a></span>
+<div id="textarea_simulator" style="position: absolute; top: 0px; left: 0px; visibility: hidden;"></div><div id="formPrincipal:growl_container" class="ui-growl ui-widget" style="z-index: 1001;"></div><div class="ui-dialog-docking-zone"></div></body></html>

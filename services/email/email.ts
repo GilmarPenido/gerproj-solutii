@@ -162,7 +162,7 @@ export async function sendEmail(
                                 </h1>
                                 <p style="margin:0;font-family:Segoe UI,Arial,Helvetica,sans-serif;font-size:14px;color:#2a2e35;line-height:1.6;">
                                     Solicitamos que sejam realizados os testes necessários e que o consultor responsável seja informado quanto à validação da solução ou à necessidade de ajustes.
-                                <br/>O prazo para validação é de até 2 (dois) dias corridos a partir do envio desta mensagem. 
+                                <br/>O prazo para validação é de até 2 (dois) dias úteis a partir do envio desta mensagem. 
                                 <br/>Na ausência de manifestação dentro desse prazo, o chamado será considerado validado e finalizado automaticamente.
                                 </p>
                             </td>
