@@ -633,13 +633,13 @@ export default function Home() {
         let desc = chamado?.SOLICITACAO_CHAMADO?.trim();
         desc = desc?.substring(1, desc.length - 1);
         setSelectedCall(chamado)
-        setDescription(desc??"");
+        setDescriptionText(desc??"");
         setOpenModal(true);
     }
 
     function openAccess(chamado: ChamadosType) {
         let desc = chamado?.ACESSO_CLIENTE?.trim();
-        setDescription(desc??'Acesso não informado!');
+        setDescriptionText(desc??'Acesso não informado!');
         setOpenModal2(true);
     }
 
@@ -806,6 +806,7 @@ export default function Home() {
     }
 
     function handleEdit(os: any) {
+        
         setSelectedOs(os);
 
         setHours({
@@ -850,9 +851,6 @@ export default function Home() {
             .then((res) => res);
 
         setLoadingOs(false);
-
-        if (!result) return;
-
         
         if(tab === 'chamado') {
             getCalls();
@@ -883,6 +881,8 @@ export default function Home() {
             return;
         }
 
+        setLoadingOs(true)
+
         let result = await fetch("/api/os/update", {
             method: "POST",
             body: JSON.stringify({
@@ -894,10 +894,8 @@ export default function Home() {
             })
         })
             .then((res) => res.json())
-            .then((res) => res);
 
-        if (!result) return;
-
+        setLoadingOs(false)
 
         if(tab === 'chamado') {
 
@@ -951,7 +949,7 @@ export default function Home() {
                 >
                     <p
                         className="my-4 text-blueGray-500 text-lg leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: description }}
+                        dangerouslySetInnerHTML={{ __html: descriptionText }}
                     ></p>
                 </Modal>
             }
@@ -974,7 +972,7 @@ export default function Home() {
                         resize: 'none',
                         minHeight: '300px',
                         padding: '10px'
-                    }} name="acesso" id="acesso" value={description} />
+                    }} name="acesso" id="acesso" value={descriptionText} />
                     
                 </Modal>
             }
