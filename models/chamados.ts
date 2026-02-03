@@ -18,6 +18,7 @@ export type ChamadosType = {
     NOME_CLIENTE: string
     SOLICITACAO_UTF8?: string
     ACESSO_CLIENTE?: string
+    DTINI_CHAMADO?: string
 }
 
 export type ChamadoLimitType = {

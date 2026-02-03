@@ -31,6 +31,22 @@ export default async function StartCallService(codChamado: string): Promise<bool
                     })
             })
 
+            const chamado = await new Promise<ChamadosType>((resolve, reject) => {
+                db.query(`SELECT * FROM CHAMADO WHERE COD_CHAMADO = ?`,
+                    [codChamado], async function (err: any, res: ChamadosType[]) {
+                        if (err) {
+                            db.detach()
+                            return reject(err);
+                        }
+                        return resolve(res[0])
+                    })
+            })
+
+
+            let dataIniChamado = chamado['DTINI_CHAMADO']??'';
+            if (dataIniChamado == '' || dataIniChamado == null) {
+                dataIniChamado = new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit' }).replaceAll('/', '.').replaceAll(',', '');
+            }
 
             const transaction: any = await new Promise((resolve, reject) => {
                 db.transaction(Firebird.ISOLATION_READ_COMMITTED, (err: any, transaction: any) => {
@@ -46,8 +62,8 @@ export default async function StartCallService(codChamado: string): Promise<bool
             await new Promise((resolve, reject) => {
 
                 transaction.query(`
-                        UPDATE CHAMADO SET STATUS_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
-                    [STATUS_CHAMADO["EM ATENDIMENTO"], codChamado, STATUS_CHAMADO.FINALIZADO], async function (err: any, result: any) {
+                        UPDATE CHAMADO SET STATUS_CHAMADO = ? , DTINI_CHAMADO = ? WHERE COD_CHAMADO = ? AND STATUS_CHAMADO <> ?`,
+                    [STATUS_CHAMADO["EM ATENDIMENTO"], dataIniChamado, codChamado, STATUS_CHAMADO.FINALIZADO], async function (err: any, result: any) {
                         if (err) {
                             db.detach()
                             transaction.rollback();
