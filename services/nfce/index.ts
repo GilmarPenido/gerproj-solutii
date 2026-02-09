@@ -422,7 +422,7 @@ async function scrapeNFCe(chaveAcesso: string, options: ScrapingOptions = {}): P
         _debug: {
           htmlLength: bodyHtml.length,
           hasTable: document.querySelectorAll('table').length > 0,
-          url: window.location.href
+          url: window?.location?.href || ''
         }
       };
     });

@@ -54,6 +54,7 @@ export default function Home() {
     const [tasks, setTasks] = useState([])
     const [classificacao, setClassificacao] = useState([])
     const [descriptionText,setDescriptionText] = useState('')
+    const [accessText, setAccessText] = useState('')
 
     const [date, setDate] = useState(new Date().toISOString().substring(0, 10));
 
@@ -614,11 +615,11 @@ export default function Home() {
     async function salvarAcessoCliente(){
 
         setIsChangeAccess(true)
-        
+
         let result = await fetch("/api/acesso", {
             method: "POST",
             body: JSON.stringify({
-                descricao: description,
+                descricao: accessText,
                 cliente: selectedCall?.COD_CLIENTE
             })
         })
@@ -626,7 +627,8 @@ export default function Home() {
         getCalls()
 
         setIsChangeAccess(false)
-        
+        setOpenModal2(false)
+
     }
 
     function openDescriptions(chamado: ChamadosType) {
@@ -639,7 +641,8 @@ export default function Home() {
 
     function openAccess(chamado: ChamadosType) {
         let desc = chamado?.ACESSO_CLIENTE?.trim();
-        setDescriptionText(desc??'Acesso não informado!');
+        setAccessText(desc??'Acesso não informado!');
+        setSelectedCall(chamado);
         setOpenModal2(true);
     }
 
@@ -954,26 +957,23 @@ export default function Home() {
                 </Modal>
             }
 
-            {isOpenModal2 && 
+            {isOpenModal2 &&
                 <Modal
                     isOpen={isOpenModal2}
                     setOpenModal={setOpenModal2}
-                    title="Descrição"
+                    title="Dados de Acesso"
 
                     action={salvarAcessoCliente}
                     actionText="Salvar"
                 >
-                    
-                    <textarea 
-                    
-                    onChange={event => setDescription(event.target.value)}
+                    <textarea
+                    onChange={event => setAccessText(event.target.value)}
                     style={{
                         width: '100%',
                         resize: 'none',
                         minHeight: '300px',
                         padding: '10px'
-                    }} name="acesso" id="acesso" value={descriptionText} />
-                    
+                    }} name="acesso" id="acesso" value={accessText} />
                 </Modal>
             }
 

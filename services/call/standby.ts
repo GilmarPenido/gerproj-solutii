@@ -93,7 +93,7 @@ export default async function UpdateCallService(
                 db.query(`SELECT Max(OS.num_os) as num_os FROM
                             OS
                                 INNER JOIN
-                            CHAMADO on CHAMADO.cod_chamado = OS.chamado_os
+                            CHAMADO on CHAMADO.cod_chamado = CAST(OS.chamado_os as integer )
                                 INNER JOIN
                             TAREFA  on TAREFA.cod_tarefa = OS.codtrf_os
 
@@ -133,6 +133,29 @@ export default async function UpdateCallService(
             if(!!NUM_OS_MATER[0]['NUM_OS']) {
                 NUM_OS = NUM_OS_MATER[0]['NUM_OS']
             }
+
+            console.log(COD_OS,
+                        chamado.CODTRF_CHAMADO??task[0].COD_TAREFA,
+                        new Date(`${date} 00:00`).toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
+                        startTime.replace(":", ""),
+                        endTime.replace(":", ""),
+                        chamado.ASSUNTO_CHAMADO,
+                        STATUS_CHAMADO_COD['STANDBY'],
+                        'SIM',  //PRODUTIVO_OS
+                        chamado.COD_RECURSO,
+                        'SIM',  //PRODUTIVO2_OS
+                        task[0].RESPCLI_PROJETO, //RESPCLI_OS
+                        iconv.encode( description, 'WIN1252'),
+                        'NAO',
+                        'NAO',
+                        new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replaceAll(',', ''),
+                        'SIM',  //FATURADO_OS
+                        100, //PERC_OS
+                        'SIM', //VALID_OS
+                        NUM_OS,
+                        chamado.COD_CHAMADO,
+                        0,
+                        new Date().toLocaleString('pt-br', { year: 'numeric', month: '2-digit'}))
             
             
             success = await new Promise((resolve, reject) => {
@@ -199,20 +222,16 @@ export default async function UpdateCallService(
                     });
             })
 
-            console.log(7)
-
             /**
              * COD_OS, CODTRF_OS, DTINI_OS, HRINI_OS, HRFIM_OS, STATUS (1 - LEVANTAMENTO, 2 - DESENVOLVIMENTO, 3 - TESTE, 4 - CONCLUIDO), ?, PRODUTIVO_OS ('SIM'), CODREC_OS, PRODUTIVO2_OS ('SIM'), RESPCLI_OS, REMDES_OS ('NAO'), ABONO_OS ('NAO'), DESLOC_OS (0000), OBS (BLOB), DTINC_OS (DATA DE INCLUSAO), FATURADO_OS, PERC_OS (100), COMP_OS (MES VIGENTE), VALID_OS, VRHR_OS, NUM_OS, CHAMADO_OS
              */
 
             success = await transaction.commit((err: Error) => {
                 if (err) {
-                    console.log(8)
                     transaction.rollback();
                     return reject(err)
                 }
                 else {
-                    console.log(9)
                     db.detach();
                     return resolve(true)
                 }
@@ -221,7 +240,6 @@ export default async function UpdateCallService(
 
 
         } catch (err) {
-            console.log(10, err)
             db.detach();
             return reject(err)
         }
