@@ -768,7 +768,7 @@ export default function Home() {
                 if(res[0].PERMAPO_RECURSO === "SIM") {
                     setLimitDate(new Date(res[0].DTLIMITE_RECURSO))
                 } else {
-                    let date = new Date()
+                    let date = (new Date(`${(new Date()).toISOString().split('T')[0]} 00:00`));
                     date.setDate(date.getDate() - 1)
                     setLimitDate(date)
                 }
@@ -929,7 +929,7 @@ export default function Home() {
     }
 
     function validCurrentDate(date: string): boolean {
-        let selectedDate = new Date(date);
+        let selectedDate = date.length > 10 ? new Date(date) : new Date(date+`T00:00`);
         let tomorrow = (new Date(`${(new Date()).toISOString().split('T')[0]} 00:00`));
         tomorrow.setDate(tomorrow.getDate() + 1)
         return selectedDate >= (limitDate??'') && selectedDate < tomorrow
