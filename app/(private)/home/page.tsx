@@ -79,6 +79,7 @@ export default function Home() {
 
     function changeSelectedDate(event: ChangeEvent<HTMLInputElement>) {
         setSelectedCall(null)
+        setSelectedProj(null)
         setSelectedDate(event?.target?.value)
         getAllOs(event?.target?.value);
 
@@ -93,10 +94,14 @@ export default function Home() {
 
     function changeSelectedCall(chamado: ChamadosType) {
         setSelectedCall(() => chamado);
+        setSelectedProj(null);
+        setSelectedDate('');
     }
 
     function changeSelectedCallTrf(task: TaskType) {
         setSelectedProj(() => task);
+        setSelectedCall(null);
+        setSelectedDate('');
     }
 
     function validRangeTime() {
@@ -863,9 +868,10 @@ export default function Home() {
             .then((res) => res);
 
         setLoadingOs(false);
-        
+
         if(tab === 'chamado') {
             getCalls();
+            getAllOs(selectedDate);
         } else {
             getAllOsTarefa()
         }
@@ -910,12 +916,11 @@ export default function Home() {
         setLoadingOs(false)
 
         if(tab === 'chamado') {
-
             getCalls();
+            getAllOs(selectedDate);
         } else {
             getAllOsTarefa()
         }
-
 
         setModalEditOS(false);
 
@@ -1437,8 +1442,27 @@ export default function Home() {
             }
 
             <section className="w-full sm:text-sm text-xs pt-6 overflow-auto">
-                <input placeholder="Selecione uma data" type="date" value={selectedDate} onChange={changeSelectedDate} className="h-8 p-2 w-[160px] outline-none border-2 border-zinc-200 rounded-md" />
-                <IoCloseCircleOutline onClick={_ => setSelectedDate('')} className="cursor-pointer text-red-500 size-4 top-[-1.6px] rounded-lg inline left-[-50px] relative" />
+                <div className="flex flex-col gap-1">
+                    <div className="flex flex-row items-center gap-1">
+                        <input placeholder="Selecione uma data" type="date" value={selectedDate} onChange={changeSelectedDate} className="h-8 p-2 w-[160px] outline-none border-2 border-zinc-200 rounded-md" />
+                        <IoCloseCircleOutline onClick={_ => { if (!selectedCall && !selectedProj) setListOs([]); setSelectedDate(''); }} className="cursor-pointer text-red-500 size-4 rounded-lg" />
+                    </div>
+                    {selectedCall && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-cyan-100 border border-cyan-400 text-cyan-900 text-xs font-semibold">
+                            📋 Apontamentos do chamado: <b>#{selectedCall.COD_CHAMADO}</b> — {selectedCall.NOME_CLIENTE}
+                        </span>
+                    )}
+                    {selectedProj && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-100 border border-indigo-400 text-indigo-900 text-xs font-semibold">
+                            📋 Apontamentos do Projeto: <b>{selectedProj.COD_TAREFA}</b> — {selectedProj.NOME_TAREFA}
+                        </span>
+                    )}
+                    {selectedDate && !selectedCall && !selectedProj && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-100 border border-green-400 text-green-900 text-xs font-semibold">
+                            📅 Apontamentos da data: <b>{new Date(selectedDate + 'T00:00').toLocaleDateString('pt-br')}</b>
+                        </span>
+                    )}
+                </div>
             </section>
 
 
