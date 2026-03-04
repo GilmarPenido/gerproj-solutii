@@ -758,7 +758,16 @@ export default function Home() {
         }
         )
             .then((res) => res.json())
-            .then((res) => setLimitDate(new Date(res[0].DTLIMITE_RECURSO)))
+            .then((res) => {
+
+                if(res[0].PERMAPO_RECURSO === "SIM") {
+                    setLimitDate(new Date(res[0].DTLIMITE_RECURSO))
+                } else {
+                    let date = new Date()
+                    date.setDate(date.getDate() - 1)
+                    setLimitDate(date)
+                }
+            })
             .catch(() => {
                 setLoadingOs(false);
             })

@@ -21,7 +21,8 @@ export default async function ValidLimitDate(
                 // db = DATABASE
                 db.query(`
                     SELECT
-                    DTLIMITE_RECURSO
+                    DTLIMITE_RECURSO,
+                    PERMAPO_RECURSO
                         FROM RECURSO
                         
                     where 
