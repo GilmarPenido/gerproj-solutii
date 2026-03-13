@@ -43,8 +43,6 @@ export default async function ChangeStatusService(codChamado: string, status: st
                             db.detach()
                             return reject(err);
                         }
-
-                        console.log('query response: ', res)
                         return resolve(res[0]);
                     })
             })
@@ -60,8 +58,6 @@ export default async function ChangeStatusService(codChamado: string, status: st
                 })
             })
 
-
-
             if (DATA && HORA) {
                 DATA = new Date(DATA).toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit' }).replaceAll('/', '-').replaceAll(',', '')
                 HORA = HORA.substring(0, 2) + ':' + HORA.substring(2, 4)
@@ -71,10 +67,6 @@ export default async function ChangeStatusService(codChamado: string, status: st
             }
 
             let conclusaoChamado = new Date(DATA + ' ' + HORA).toLocaleString('pt-br', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replaceAll('/', '.').replace('T', '')
-
-
-            console.log('Conclusão do chamado: ', conclusaoChamado)
-
 
             await new Promise((resolve, reject) => {
 
@@ -141,9 +133,6 @@ export default async function ChangeStatusService(codChamado: string, status: st
             db.detach();
             return reject(err)
         }
-
-
-
 
     })
 }
