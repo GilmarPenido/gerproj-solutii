@@ -333,7 +333,7 @@ export default function Home() {
             return;
         }
 
-        let data = ""
+        /* let data = ""
 
         if(status === STATUS_CHAMADO['FINALIZADO']) {
             const now = new Date();
@@ -368,10 +368,10 @@ export default function Home() {
             const [datePart, timePart] = dataFinalizacao.split('T');
             const [year, month, day] = datePart.split('-');
             data = `${day}.${month}.${year} ${timePart}`;
-        }
+        } */
 
         let result = await fetch(
-            "/api/call/change-status?codChamado=" + chamado.COD_CHAMADO + "&status=" + status + "&email=" + chamado.EMAIL_CHAMADO + "&data=" + encodeURIComponent(data)
+            "/api/call/change-status?codChamado=" + chamado.COD_CHAMADO + "&status=" + status + "&email=" + chamado.EMAIL_CHAMADO
         )
             .then((res) => res.json())
             .then((res) => res);

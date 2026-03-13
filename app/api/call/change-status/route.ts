@@ -8,7 +8,7 @@ async function handler(request: NextRequest) {
   const data   = searchParams.get('data')
 
   try {
-    const response = await ChangeStatusService(codChamado??'', status??'', '', data??'')
+    const response = await ChangeStatusService(codChamado??'', status??'', '')
 
     return NextResponse.json(response)
   } catch(error) {
